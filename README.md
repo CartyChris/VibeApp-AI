@@ -1,38 +1,100 @@
+<div align="center">
+
 # VibeApp AI
 
-A native macOS app for building iPhone, iPad, Android, web and desktop apps by describing them, and for **remaking existing apps and websites for other devices**.
+**Describe an app or a game. Watch it appear on a simulated iPhone. Ship it anywhere.**
 
-Rust core on [Tauri 2](https://tauri.app) with the system WebKit view. No Electron, no bundler, no frontend framework. The app is about 7 MB.
+A native macOS studio for building iPhone, iPad, Android, web, desktop and **3D** apps and games with any AI model, and for **remaking existing apps** for other devices.
+
+![macOS](https://img.shields.io/badge/macOS-Apple%20silicon-black?logo=apple)
+![Rust](https://img.shields.io/badge/core-Rust-orange?logo=rust)
+![Tauri 2](https://img.shields.io/badge/Tauri-2-24C8DB?logo=tauri)
+![No bundler](https://img.shields.io/badge/frontend-plain%20ES%20modules-yellow?logo=javascript)
+![Tests](https://img.shields.io/badge/tests-621%20passing-brightgreen)
+![MCP](https://img.shields.io/badge/MCP-client-8A2BE2)
+![License: MIT](https://img.shields.io/badge/license-MIT-blue)
+
+<img src="docs/screenshots/hero.png" alt="VibeApp AI building a three.js 3D platformer, running live on a simulated iPhone 17 Pro" width="900">
+
+<sub>A three.js platformer from the built-in 3D starter, running live in the iPhone simulator.</sub>
+
+</div>
+
+---
 
 ## What it does
 
-- **Build by describing.** Chat with any of 400+ models (OpenRouter, Anthropic, OpenAI, Google, Z.ai, DeepSeek, Groq, or local Ollama / LM Studio / llama.cpp). The app is shown live in a device simulator with real safe areas.
-- **Remake an app.** Point it at a website, a source folder, a Mac `.app` (Electron apps included), an iOS `.ipa` or an Android `.apk`. It inspects the original without running it and writes a port brief listing:
-  - the screens and features
-  - its permissions, document types and URL schemes
-  - the endpoints it calls
-  - its design tokens and UI text
+| | |
+|---|---|
+| **Build by describing** | Chat with any of 400+ models: OpenRouter, Anthropic, OpenAI, Google, Z.ai, DeepSeek, Groq, or local Ollama, LM Studio and llama.cpp. Every change shows up live in a device simulator with real safe areas. |
+| **3D games and engines** | three.js games that run right in the preview, plus **Godot**, **Unity** and **Unreal Engine** projects you can open, run, check and build with your own engine, and ray-traced **vork** scenes rendered on your GPU. |
+| **Remake anything** | Point it at a website, a source folder, a Mac `.app` (Electron apps included), an iOS `.ipa` or an Android `.apk`. It reads the app without running it and writes a port brief. Then it rebuilds the app for phone, tablet, desktop or web. |
+| **Tools over MCP** | Models can call tools on MCP servers you connect: Ghidra (via REA, ReVa or GhidraMCP), Godot, Unity, Unreal, Blender, Meshy, Playwright, GitHub and more. You approve each call. |
+| **Plug-ins** | Bundles of skills, MCP servers, slash commands, themes and instructions that switch on and off together. Claude Code plug-ins install as they are. |
+| **Skills** | Instruction packs that load only when they fit the request. Built-in packs cover iPhone layout, game feel, accessibility, 3D, every engine, animation, reverse engineering and porting. |
+| **Safe edits** | Apply changes live, review them first, or try them in a sandboxed copy. Undo, redo and rewind work on every turn, and a crash journal means a long reply is never lost. |
+| **Audit** | Checks accessibility, credentials, offline use, performance, localisation, ship-readiness, and phone and tablet readiness, with a one-click fix for each finding. |
+| **Swarms and Arena** | Several models work blind to each other's identity, with gates between stages. Or send one prompt to several models and keep the best result. |
+| **Export** | Xcode project, PWA, Electron, Android, and iOS Simulator runs. Engine projects build WebGL, iOS and Android through the engine. |
 
-  It then starts a project for iPhone, iPad, Android, the web or the desktop.
-- **Tools over MCP.** Models can call tools on MCP servers you connect: Ghidra (through REA, ReVa or GhidraMCP), radare2, JADX, Playwright, Chrome DevTools, GitHub, Context7, Figma and more. You approve every call unless you choose to trust a tool or server. You can also import the servers you've already set up for Claude Desktop, Claude Code, Cursor or Windsurf.
-- **Skills.** These are instruction packs loaded only when they're relevant. Built-in packs cover the iPhone safe area, game loops, offline use, accessibility, clean-room remakes, reverse-engineering triage, desktop-to-phone and website-to-app ports, and tablet layouts. One click imports more from GitHub, including the ReVa and REA reverse-engineering packs and Anthropic's skills.
-- **Safe edits.** Changes can apply live, wait for your review, or run in a sandbox copy. Every turn has undo and redo, and you can rewind to any earlier message. A crash journal means a long reply is never lost.
-- **Audit.** Checks accessibility, credentials, offline use, performance, localisation, ship-readiness, and phone and tablet readiness. Each finding comes with a one-click fix.
-- **Swarms and Arena.** Several models work blind to one another's identity, with gates between stages. Or you can send one prompt to several models and adopt the best result.
-- **Export.** Xcode project, PWA, Electron, Android project, plus iOS Simulator runs.
+## Gallery
+
+<table>
+<tr>
+<td width="50%"><img src="docs/screenshots/engine.png" alt="Engine panel: a vork project rendered on this Mac, with Godot, Unity, Unreal, Blender and Cascadeur detection"><br><b>Engine</b>: open, run, check and build with Godot, Unity, Unreal or vork. Errors go straight back to the model.</td>
+<td width="50%"><img src="docs/screenshots/remake.png" alt="Remake panel: Calculator.app inspected into a port brief, about to be remade as an iPad app"><br><b>Remake</b>: inspect an app, read its brief, pick iPhone, iPad, Android, web or desktop.</td>
+</tr>
+<tr>
+<td><img src="docs/screenshots/tools.png" alt="A model asks to run decompile_function on the REA reverse-engineering server; the user can allow once, always, trust or deny"><br><b>Tools</b>: every MCP call waits for your approval unless you've trusted that tool or server.</td>
+<td><img src="docs/screenshots/themes.png" alt="Appearance panel with 24 themes including Synthwave, Tokyo Night, Catppuccin, Gruvbox and a plug-in theme"><br><b>Themes</b>: 23 built-in themes, plus any a plug-in adds. Every colour is editable.</td>
+</tr>
+<tr>
+<td><img src="docs/screenshots/plugins.png" alt="Plug-ins panel with a VibeApp plug-in and a Claude Code format plug-in"><br><b>Plug-ins</b>: make your own from a template, or install from GitHub or a folder.</td>
+<td><img src="docs/screenshots/vork-render.png" alt="The vork starter scene, ray-traced at final quality"><br><b>vork</b>: the starter scene, ray-traced on this Mac in 10 seconds.</td>
+</tr>
+</table>
+
+## 3D, the whole pipeline
+
+```mermaid
+flowchart LR
+    A[Describe it] --> B{Project kind}
+    B -->|3D game| C[three.js<br/>vendored, offline]
+    B -->|Godot / Unity / Unreal| D[Engine project<br/>edited as text]
+    B -->|vork| E[scene.json]
+    C --> P[Live preview<br/>on any device]
+    D -->|Build for the preview| P
+    D -->|Check / Compile| R[Errors]
+    E -->|Render| P
+    R -->|Ask the AI to fix these| A
+    M[MCP: Blender, Meshy,<br/>Tripo, engine editors] -.assets & live control.-> D
+    M -.-> C
+```
+
+- **three.js**: r186 is copied into each project, so games run offline, and the starter is a playable platformer that works with touch and keyboard. The model is told the budgets that keep a game smooth on a phone.
+- **Godot 4**: text scenes and GDScript, a gl_compatibility renderer, and a Web export preset that runs without special server headers. **Check** loads the project headless and reports script errors. **Build for the preview** exports to the web and plays the result in VibeApp.
+- **Unity**: C# with a scene built in code, so there's no hand-made YAML to break. An editor build script makes WebGL, iOS and Android builds; WebGL plays in the preview.
+- **Unreal Engine 5**: a C++ module, a GameMode, Enhanced Input and the config files. **Compile** reports errors with file and line. Blueprints stay in the editor.
+- **vork**: ray-traced stills and shots. VibeApp gives the model the scene reference from your installed vork, renders, and shows the image.
+- **Animation**: the character animation skill covers rigs, clip blending and retargeting, plus round-tripping through [Cascadeur](https://cascadeur.com) as FBX or glTF.
+- **Assets**: glTF budgets and licensing rules, plus Meshy, Tripo and Blender over MCP for generating and cleaning up models.
+
+Importing an existing Godot, Unity, Unreal or vork folder recognises the engine and leaves its caches behind. Unity's `Library/` is often gigabytes, and none of it is source.
 
 ## Trust model
 
-- API keys and MCP secrets are kept only in the macOS Keychain. They are never written to disk or a log.
+- API keys and MCP secrets are kept only in the macOS Keychain. They are never written to disk or a log, and the public repo contains no keys: `tools/check.py` fails on any key-shaped string.
 - Model output is untrusted.
   - A model never runs a shell command: `<vibe:shell>` is shown to you, never executed.
-  - It can't write outside the project.
-  - It can only pick a tool and its arguments on an MCP server you defined. It never chooses a command line.
-- Inspecting an app to remake it is static: nothing is executed and nothing is uploaded.
+  - It never writes outside the project.
+  - It only picks a tool and its arguments on an MCP server you defined, never a command line.
+- Engine actions start only from a button you press. The first time one runs a project's own code natively, VibeApp says so and asks first.
+- Remake inspection is static: nothing is executed and nothing is uploaded.
+- Plug-ins install text files only. Claude Code hooks and scripts are never run.
 
 ## Build
 
-Requirements: macOS, Rust (stable), Node 18+, and the Xcode command-line tools.
+Requirements: macOS on Apple silicon, Rust (stable), Node 18+, and the Xcode command-line tools.
 
 ```bash
 npm install
@@ -42,3 +104,13 @@ npx tauri build --bundles app       # builds src-tauri/target/release/bundle/mac
 ```
 
 Read [ARCHITECTURE.md](ARCHITECTURE.md) before changing anything. It explains the output protocol and the orchestration loop, lists every bug already fixed (each guarded by a test), and gives the invariants that must hold. [AGENT_PROMPT.md](AGENT_PROMPT.md) is the brief for an AI agent continuing the work.
+
+## Credits
+
+- [three.js](https://threejs.org) r186: MIT, copied into 3D projects with its licence.
+- [vork](https://github.com/voyager-so/vork) by Voyager: used through your own install, never bundled. It's source-available under its preview licence.
+- MCP servers are their authors' projects and are installed by you. The Tools panel links each one.
+
+## License
+
+[MIT](LICENSE) © 2026 Chris Carty

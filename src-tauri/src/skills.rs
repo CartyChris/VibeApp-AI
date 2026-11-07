@@ -272,6 +272,17 @@ pub fn list() -> Vec<Skill> {
             out.push(b);
         }
     }
+    // Skills from enabled plug-ins. They live in the plug-in's folder, so
+    // turning one off uses the same sidecar as a built-in.
+    for mut s in crate::plugins::enabled_skills() {
+        if mine.iter().any(|m| m.id == s.id) {
+            continue;
+        }
+        if fs::metadata(skills_dir().join(format!("{}.disabled", s.id))).is_ok() {
+            s.enabled = false;
+        }
+        out.push(s);
+    }
     out.extend(mine);
     out.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
     out
@@ -294,9 +305,9 @@ pub fn remove(id: &str) -> Result<()> {
     let dir = skills_dir();
     let _ = fs::remove_file(dir.join(format!("{id}.md")));
     let _ = fs::remove_file(dir.join(format!("{id}.disabled")));
-    // A built-in cannot be deleted from disk, so disable it instead — the user
-    // asked for it gone either way.
-    if builtin().iter().any(|b| b.id == id) {
+    // A built-in or plug-in skill cannot be deleted from here, so disable it
+    // instead — the user asked for it gone either way.
+    if builtin().iter().any(|b| b.id == id) || crate::plugins::enabled_skills().iter().any(|s| s.id == id) {
         set_enabled(id, false)?;
     }
     Ok(())
@@ -350,7 +361,13 @@ fn gates_pass(s: &Skill, req: &[String]) -> Option<bool> {
 
 /// Score a skill against the request. Zero means "do not send this".
 fn score(s: &Skill, req: &[String], kind: &str) -> i32 {
+    // A skill tagged with the project's kind belongs to every request in it:
+    // a Godot project's "make it jump higher" never says "Godot". That opens
+    // the gate, but with less weight than the request naming it, so the words
+    // of the request still decide between the project's many 3D skills.
+    let kind_opens = !kind.is_empty() && s.tags.iter().any(|t| t == kind);
     let mut n = match gates_pass(s, req) {
+        Some(false) if kind_opens => 2,
         Some(false) => return 0,
         // Passing a gate is a deliberate, specific signal.
         Some(true) => 5,
@@ -367,6 +384,11 @@ fn score(s: &Skill, req: &[String], kind: &str) -> i32 {
     // A game project should get the game skills without having to say "game".
     if !kind.is_empty() && s.tags.iter().any(|t| t == kind) {
         n += 4;
+        // The engine's own skill outranks the general 3D ones in its project:
+        // its first ordinary tag names the kind it is for.
+        if s.tags.iter().find(|t| !t.starts_with('+') && !t.starts_with('&')).is_some_and(|t| t == kind) {
+            n += 6;
+        }
     }
     n
 }
@@ -556,6 +578,61 @@ pub fn join_pack(skill: &str, refs: &[(String, String)], cap: usize) -> String {
     }
     if !left_out.is_empty() {
         out.push_str(&format!("\n\n(Further references not included: {}.)", left_out.join(", ")));
+    }
+    out
+}
+
+/// A skill folder on disk (SKILL.md plus reference Markdown) as one text.
+pub fn read_pack_dir(dir: &Path, cap: usize) -> Option<(String, String)> {
+    let skill = fs::read_to_string(dir.join("SKILL.md")).ok()?;
+    let mut refs = Vec::new();
+    for e in walkdir::WalkDir::new(dir).max_depth(3).into_iter().filter_map(|e| e.ok()) {
+        let p = e.path();
+        if !e.file_type().is_file() || p.file_name().is_some_and(|n| n == "SKILL.md") {
+            continue;
+        }
+        if p.extension().is_some_and(|x| x == "md") {
+            if let Ok(body) = fs::read_to_string(p) {
+                let rel = p.strip_prefix(dir).ok()?.to_string_lossy().to_string();
+                refs.push((rel, body));
+            }
+        }
+    }
+    refs.sort();
+    let name = dir.file_name()?.to_string_lossy().to_string();
+    Some((name, join_pack(&skill, &refs, cap)))
+}
+
+/// Where other agents keep skills in the Agent Skills layout.
+pub fn local_skill_roots() -> Vec<(&'static str, PathBuf)> {
+    let home = dirs::home_dir().unwrap_or_default();
+    vec![
+        ("Claude Code", home.join(".claude/skills")),
+        ("Codex", home.join(".codex/skills")),
+        ("Agents", home.join(".agents/skills")),
+    ]
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct LocalSkill {
+    pub origin: String,
+    pub path: String,
+    pub name: String,
+    pub description: String,
+}
+
+/// Every skill folder under the known roots, for the user to pick from.
+pub fn scan_local() -> Vec<LocalSkill> {
+    let mut out = Vec::new();
+    for (origin, root) in local_skill_roots() {
+        let Ok(rd) = fs::read_dir(&root) else { continue };
+        let mut dirs: Vec<PathBuf> = rd.flatten().map(|e| e.path()).filter(|p| p.join("SKILL.md").is_file()).collect();
+        dirs.sort();
+        for d in dirs {
+            let text = fs::read_to_string(d.join("SKILL.md")).unwrap_or_default();
+            let s = parse_md(&text, &d.file_name().unwrap_or_default().to_string_lossy());
+            out.push(LocalSkill { origin: origin.into(), path: d.to_string_lossy().into(), name: s.name, description: s.description });
+        }
     }
     out
 }
@@ -1209,6 +1286,231 @@ A JavaScript app ships its program as readable text. You rarely need a decompile
 - Material ripple and elevation shadows → iOS uses highlight on press and hairline separators.
 - Permissions: ask at the moment of use, with a one-line reason, as iOS requires.
 "#),
+        builtin_skill!("threejs-3d-games", "three.js 3D games",
+            "Use when building or changing a 3D game, 3D scene or WebGL experience with three.js.",
+            ["+3d", "+three*", "+webgl", "+gltf", "+glb", "+shader*", "+voxel*", "+fps", "game3d", "three", "3d", "webgl"], false, r#"
+# three.js 3D games
+
+## Structure
+
+- One renderer, one scene, one camera rig, one animation loop (`renderer.setAnimationLoop`). Game state lives in plain objects; three.js objects only display it. That is what makes save/load, networking and replays possible later.
+- Fixed simulation step for physics and gameplay (`accumulator += dt; while (acc >= 1/60) step(1/60)`), render every frame. Clamp `dt` to 0.05 so a stalled tab never teleports the player.
+- Systems as small functions called in order each step: input → movement → collisions → pickups/combat → camera → HUD. No logic in render callbacks.
+
+## Rules
+
+- Import from `'three'` and `'three/addons/…'` through the import map. Never a CDN.
+- `renderer.setPixelRatio(Math.min(2, devicePixelRatio))`; resize the renderer *and* the camera aspect on resize.
+- Reuse vectors, quaternions and matrices in hot code (`const tmp = new THREE.Vector3()` at module level). `new` inside the loop is a stutter every few seconds.
+- Repeated things (trees, coins, bullets, tiles) are one `InstancedMesh`, or pooled meshes toggled with `visible`.
+- Collisions: start with spheres and axis-aligned boxes (`Box3`, `Sphere`), or a heightfield for terrain. Add a physics library only when the game needs stacking, joints or ragdolls.
+- Camera: third-person cameras follow with exponential smoothing (`1 - Math.exp(-k*dt)`) and never pass through walls (raycast from target to camera and pull in).
+- Removing an object: `geometry.dispose()`, `material.dispose()`, its textures' `dispose()`. A level reload that skips this leaks GPU memory until the tab dies.
+- Touch and keyboard both: a virtual stick and buttons via pointer events, shown under `(pointer: coarse)`.
+
+## Traps
+
+- `MeshStandardMaterial` with no light in the scene renders black. Hemisphere + one directional light is the minimum.
+- Shadow acne or peter-panning: set `shadow.bias` (≈ -0.0005) and `shadow.normalBias` (≈ 0.02), and fit the shadow camera tightly around the playable area.
+- Z-fighting on coplanar surfaces: raise one by 0.01, or use `polygonOffset`.
+"#),
+
+        builtin_skill!("3d-assets-gltf", "3D assets and glTF",
+            "Use when adding, loading, optimising or licensing 3D models, textures or environment maps for a game or app.",
+            ["+3d", "+gltf", "+glb", "+fbx", "+mesh*", "+texture*", "+asset*", "+hdri", "gltf", "assets", "game3d", "godot", "unity", "unreal", "vork"], false, r#"
+# 3D assets and glTF
+
+## Formats
+
+- **glTF 2.0 binary (.glb)** for anything going into three.js, Godot or vork: one file, PBR materials, skeletons and animation clips included. FBX is for exchange with tools (Cascadeur, Maya, Mixamo) and Unity; convert to .glb for the web.
+- Textures: power-of-two sizes; 1024 for props, 2048 for heroes and terrain on desktop, half that on phones. KTX2/Basis cuts GPU memory 4–8×, but needs the transcoder files copied into the project; without them, use WebP/JPEG for colour and PNG only where alpha is needed.
+- Environment lighting: an equirectangular HDR (Poly Haven) through `PMREMGenerator`, or a small baked cubemap. One per scene.
+
+## Budgets for a phone
+
+- Characters 5–20k triangles, props 0.5–3k, a whole visible scene under ~300k. Under ~150 draw calls: merge static props, instance repeated ones.
+- Optimise with glTF-Transform: `npx @gltf-transform/cli optimize in.glb out.glb --texture-compress webp` (suggest it to the user; never assume it ran).
+
+## Licensing
+
+- Use only assets the user owns or that are licensed for it: Poly Haven (CC0), Kenney (CC0), Quaternius (CC0), ambientCG (CC0), Khronos glTF sample assets (per-asset licences). Record each source and licence in `assets/CREDITS.md`. CC BY needs the credit shown in the game too.
+- Never copy models, textures or sounds out of another game.
+
+## Loading
+
+- Show progress with a `LoadingManager`; start the game only when the first level's assets are ready.
+- `gltf.scene.traverse(o => { if (o.isMesh) { o.castShadow = o.receiveShadow = true; } })` once on load, not per frame.
+- Characters you spawn many of: load once, then `SkeletonUtils.clone(gltf.scene)` per instance with its own `AnimationMixer`.
+"#),
+
+        builtin_skill!("3d-graphics-polish", "3D graphics polish",
+            "Use when making a 3D game or scene look better: lighting, materials, colour, atmosphere, effects or a premium AAA feel.",
+            ["+3d", "+lighting", "+graphics", "+shader*", "+aaa", "+bloom", "+fog", "+pbr", "graphics", "lighting", "game3d", "vork"], false, r#"
+# 3D graphics polish
+
+Most of "looks premium" is lighting, colour management and restraint, not effects.
+
+## Order of work
+
+1. **Colour pipeline first.** sRGB output, a filmic tone mapper (ACES or AgX), colour textures marked sRGB, data textures (normal, roughness) linear. Wrong here makes everything after look muddy.
+2. **Key light + fill + environment.** One warm directional key with soft shadows, a cool hemisphere or environment map for fill. Exposure set so mid-tones sit around 0.18 grey.
+3. **Materials.** Realistic roughness (almost nothing is 0 or 1), metalness only 0 or 1, a little normal-map detail. Vary albedo slightly between copies so instances do not look stamped.
+4. **Atmosphere.** Distance fog matched to the sky colour; it hides the far plane and adds depth for free.
+5. **Only then effects**, each earning its cost: bloom on emissive things only, SSAO on desktop only, no motion blur by default.
+
+## Readability
+
+- Silhouettes: the player and threats contrast in value with the background. Check the game in greyscale.
+- Interactables pulse or glow; hazards use one consistent colour.
+- Effects never hide the player.
+
+## Phone budget
+
+- No full-screen post effects on low-end phones; detect with a frame-time check over the first two seconds and step quality down (shadow map size, pixel ratio 1.5, no bloom) rather than shipping one setting.
+"#),
+
+        builtin_skill!("character-animation", "Character animation",
+            "Use when animating 3D characters or creatures: skeletons, rigs, animation clips, blending, retargeting, Mixamo or Cascadeur.",
+            ["+animat*", "+rig*", "+skelet*", "+cascadeur", "+mixamo", "+retarget*", "+pose*", "+mocap", "animation", "game3d", "godot", "unity", "unreal"], false, r#"
+# Character animation
+
+## The pipeline
+
+1. **Rig** a humanoid with a standard skeleton (Mixamo or Unreal mannequin naming) so clips retarget between characters.
+2. **Animate** in Cascadeur (physics-assisted posing: AutoPosing and AutoPhysics make keys look weighted), Blender, or start from Mixamo clips. Cascadeur is from cascadeur.com only; its scripting is Python (`csc` module) inside the app.
+3. **Export** FBX from the animation tool, then convert to .glb for three.js/Godot/vork (Blender: File → Export → glTF, "Animation" on). Unity and Unreal import FBX directly.
+4. **One clip per action** (idle, walk, run, jump-start, fall, land, attack), in place (no root motion) unless the game is built for root motion.
+
+## In the engine
+
+- **three.js:** one `AnimationMixer` per character, `mixer.update(dt)` every frame, `action.crossFadeTo(next, 0.2)`. Pick the clip from movement speed, not from input, so animation never disagrees with what the character is doing.
+- **Godot:** `AnimationTree` with a state machine (idle/move/air) and a BlendSpace1D for walk→run on speed.
+- **Unity:** an Animator Controller with a Speed float and a Grounded bool; blend tree for locomotion.
+- **Unreal:** an Animation Blueprint with a locomotion state machine; drive it from the character's velocity.
+
+## Feel
+
+- Anticipation and follow-through on attacks: a 2–4 frame wind-up, a held impact frame, a recovery. Add a few frames of hit-stop on contact.
+- Feet: blend times short enough that feet do not slide (0.1–0.25 s). Foot IK only once everything else works.
+"#),
+
+        builtin_skill!("godot-projects", "Godot 4 projects",
+            "Use when the project is a Godot game, or when writing GDScript, scenes or Godot export settings.",
+            ["+godot", "+gdscript", "+tscn", "godot", "gdscript"], false, r#"
+# Godot 4 projects
+
+## Files
+
+- `.gd` GDScript 2.0: typed (`var speed: float = 6.0`, `func move(dir: Vector2) -> void`), `@export` for tunables, `@onready var x := $Path` for node references. Indent with tabs.
+- `.tscn` text scenes (format 3): resources first (`[ext_resource]`, `[sub_resource]`), then `[node]` entries. `load_steps` = resources + 1. Node `parent` is a path from the root (`"."`, `"Player"`, `"Player/Body"`). Keep ids unique and referenced exactly.
+- Prefer composing in code once a scene would need dozens of hand-written nodes: `var m := MeshInstance3D.new(); m.mesh = BoxMesh.new(); add_child(m)`.
+
+## Patterns
+
+- One script per responsibility; signals up, calls down: a child emits `signal died`, the parent connects it. No `get_parent().get_parent()` chains.
+- Autoload (singleton) only for genuinely global state (save data, settings), added in project.godot `[autoload]`.
+- Physics bodies: `CharacterBody3D` + `move_and_slide()` for players, `RigidBody3D` for props. Movement in `_physics_process`, visuals in `_process`.
+- Input: `Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")` and touch events; define custom actions in the editor rather than hand-writing their serialized events.
+
+## Exporting
+
+- Web: the `Web` preset with thread support off runs anywhere without special server headers. Needs export templates installed (Editor → Manage Export Templates).
+- iOS/Android: export presets need signing set up in the editor; say so rather than guessing certificate fields.
+- `gl_compatibility` renderer for web and older phones; `mobile` for modern phones only; `forward_plus` for desktop.
+"#),
+
+        builtin_skill!("unity-projects", "Unity projects",
+            "Use when the project is a Unity game, or when writing Unity C# scripts, editor scripts or builds.",
+            ["+unity", "+monobehaviour", "+prefab*", "unity", "csharp"], false, r#"
+# Unity projects
+
+## Files you write
+
+- C# scripts in `Assets/Scripts` (runtime) and `Assets/Editor` (editor-only, or wrapped in `#if UNITY_EDITOR`). One public class per file, file name = class name.
+- Never hand-write `.meta`, `.unity`, `.prefab`, `.asset` or `.mat` YAML: GUIDs and fileIDs must be generated by Unity. Create objects in code, or give the user exact editor steps.
+
+## Patterns
+
+- `MonoBehaviour` for things in the scene; plain C# classes for logic; `ScriptableObject` for data (weapon stats, level lists) the user edits in the Inspector.
+- Cache components in `Awake` (`rb = GetComponent<Rigidbody>()`); never `GetComponent` or `Find` in `Update`.
+- Physics in `FixedUpdate` with `Rigidbody.MovePosition`/`AddForce`; input read in `Update` and stored.
+- Input: `#if ENABLE_INPUT_SYSTEM` for the Input System package, `#else` for `UnityEngine.Input`, so scripts compile under either setting.
+- Object pooling (`UnityEngine.Pool.ObjectPool<T>`) for bullets and effects.
+
+## Builds
+
+- `BuildPipeline.BuildPlayer` from an editor script, run headless with `-batchmode -quit -executeMethod`. WebGL with compression disabled serves from any static host; iOS produces an Xcode project; Android needs the Android module and signing.
+- Mobile: URP's mobile defaults, one real-time shadow, baked lighting where possible, `Application.targetFrameRate = 60`.
+"#),
+
+        builtin_skill!("unreal-projects", "Unreal Engine projects",
+            "Use when the project is an Unreal Engine game, or when writing Unreal C++, Blueprints-facing code or Build.cs modules.",
+            ["+unreal", "+ue5", "+blueprint*", "+uproject", "unreal", "cpp"], false, r#"
+# Unreal Engine 5 projects
+
+## Files you write
+
+- C++ in `Source/<Module>/`: `.h` with `UCLASS()`/`USTRUCT()`/`UENUM()` and `GENERATED_BODY()`, the `.generated.h` include last; `.cpp` with the implementation. The module API macro (`MYGAME_API`) on every exported class.
+- `<Module>.Build.cs` lists module dependencies. Using Enhanced Input, UMG, Niagara or AI means adding "EnhancedInput", "UMG", "Niagara", "AIModule".
+- `Config/Default*.ini` for settings (default game mode, maps, input).
+- Never write `.uasset`/`.umap` (binary). Expose to Blueprints and describe the editor steps.
+
+## Patterns
+
+- Gameplay classes: `ACharacter` (with `UCharacterMovementComponent`) for players, `APawn` for vehicles and cameras, `AGameModeBase` for rules, `UActorComponent` for reusable behaviour (health, inventory).
+- Properties the designer tunes: `UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Movement")`. Object pointers to UObjects are `TObjectPtr<>` in headers and must be `UPROPERTY` or they get garbage-collected.
+- Tick only what must tick (`PrimaryActorTick.bCanEverTick = false` by default); use timers (`GetWorldTimerManager().SetTimer`) for periodic work.
+- Enhanced Input: an Input Mapping Context and Input Actions bound in `SetupPlayerInputComponent`; add a touch interface for mobile.
+
+## Build
+
+- Compile the `<Name>Editor` target for development; packaging for iOS/Android needs the platform SDKs and signing in Project Settings. Report compile errors with file and line, then fix them.
+"#),
+
+        builtin_skill!("vork-rendering", "vork rendering",
+            "Use when the project is a vork scene, or when rendering stills, films, VFX or ray-traced shots with vork.",
+            ["+vork", "+raytrac*", "+vfx", "+cinematic*", "vork", "render"], false, r#"
+# vork rendering
+
+vork renders a JSON scene on the GPU. The scene reference for the installed version is in the instructions; follow it exactly, because unknown fields are errors.
+
+## Working loop
+
+1. Block the shot with `std/previs`: framing, scale, light direction. Primitives (`std` sphere, box, grid) or placeholder assets.
+2. Materials: OpenPBR inputs (`base_color`, `specular_roughness`, `metalness`…). Real-world roughness values; avoid pure black or pure white base colours.
+3. Light: one key rectangle light aimed with `target`, plus an environment; energy in physical units, so adjust by factors of 2.
+4. Final with `std/final`; `std/path` only for glass, caustics or accurate bounce light.
+
+## Rules
+
+- Units are metres. A 1.8 m character, a 0.3 m prop: scale imported assets to match.
+- Cameras aim with `target`; keep the subject on thirds and the horizon level.
+- Models are glTF (`{"type":"asset","file":"assets/x.glb"}`); keep .gltf files beside their buffers and textures.
+- Keep scene.json readable: name every node, group related nodes as children of a named `node`.
+"#),
+
+        builtin_skill!("3d-asset-generation", "Generating 3D assets",
+            "Use when a game or scene needs custom 3D models, characters, props or environments made with AI generation or Blender.",
+            ["+3d", "+tripo", "+meshy", "+blender", "+sculpt*", "+lowpoly", "+props", "+character*", "models", "game3d", "godot", "unity", "unreal", "vork"], false, r#"
+# Generating 3D assets
+
+## Tools, when connected (Tools panel)
+
+- **Meshy** or **Tripo**: text-to-3D and image-to-3D. Ask for one object per generation, on a neutral background, in a T-pose or A-pose for characters. Request a triangle budget and PBR textures; download .glb.
+- **Blender MCP**: clean up what was generated: apply scale, set the origin at the feet or base, decimate to budget, fix normals, rename materials, export glTF with "+Y up". Poly Haven assets can be pulled in directly.
+- Generation spends the user's credits. Say what you are about to generate and why before calling the tool, and reuse an asset rather than regenerating it.
+
+## Prompts that work
+
+- Name the style and use: "low-poly stylised wooden treasure chest, game prop, 2k triangles, hand-painted texture, closed lid" beats "a chest".
+- One concept per asset; generate variations by changing one word.
+
+## After generating
+
+- Check scale against a 1.8 m reference, orientation (+Z forward in three.js and Godot), and that the origin sits on the ground.
+- Characters need a rig before animation: auto-rig (Meshy rigging, Mixamo), then animate (Cascadeur or Mixamo clips). See the Character animation skill.
+- Record each asset's source and licence in `assets/CREDITS.md`.
+"#),
     ]
 }
 
@@ -1481,6 +1783,42 @@ mod tests {
         assert!(ids("Make this work on iPad with a sidebar", "mobile").contains(&"tablet-layouts".to_string()));
         // "portrait" is not "port".
         assert!(!ids("Fix the portrait layout", "mobile").contains(&"desktop-to-mobile".to_string()));
+    }
+
+    #[test]
+    fn engine_and_3d_skills_follow_the_project_kind_and_stay_out_of_2d_work() {
+        let all = builtin();
+        let ids = |req: &str, kind: &str| -> Vec<String> {
+            relevant(&all, req, kind).iter().map(|s| s.id.clone()).collect()
+        };
+        assert!(ids("make the jump higher", "godot").contains(&"godot-projects".to_string()));
+        assert!(ids("make the jump higher", "unity").contains(&"unity-projects".to_string()));
+        assert!(ids("add an enemy", "unreal").contains(&"unreal-projects".to_string()));
+        assert!(ids("make it brighter", "vork").contains(&"vork-rendering".to_string()));
+        assert!(ids("add a second level", "game3d").contains(&"threejs-3d-games".to_string()));
+        let flat = ids("make the jump feel better in my platformer", "game");
+        for s in ["threejs-3d-games", "godot-projects", "unity-projects", "3d-graphics-polish"] {
+            assert!(!flat.contains(&s.to_string()), "{s} leaked into a 2D game: {flat:?}");
+        }
+        assert!(ids("Add a 3D model of a dragon with walk animation", "web").contains(&"character-animation".to_string())
+            || ids("Add a 3D model of a dragon with walk animation", "web").contains(&"3d-asset-generation".to_string()));
+        assert!(ids("export the animation from Cascadeur", "").contains(&"character-animation".to_string()));
+    }
+
+    /// Parse a real skills folder and show what loads for a 2D and a 3D request.
+    /// `VIBE_SKILLS_DIR=… cargo test --lib skills_in_a_real_folder -- --ignored --nocapture`
+    #[test]
+    #[ignore]
+    fn skills_in_a_real_folder() {
+        let dir = PathBuf::from(std::env::var("VIBE_SKILLS_DIR").expect("VIBE_SKILLS_DIR"));
+        let mut all = builtin();
+        all.extend(read_dir_skills(&dir));
+        for (req, kind) in [("make the jump feel better in my platformer", "game"), ("add a boss fight", "game3d"),
+                            ("make my three.js scene look AAA with better lighting", "web")] {
+            let got: Vec<String> = relevant(&all, req, kind).iter().map(|s| s.id.clone()).collect();
+            println!("{kind:7} {req:55} -> {got:?}");
+        }
+        assert!(read_dir_skills(&dir).iter().all(|s| !s.name.is_empty() && !s.description.is_empty() && !s.body.is_empty()));
     }
 
     #[test]

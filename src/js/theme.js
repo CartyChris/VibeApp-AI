@@ -144,13 +144,116 @@ export const PRESETS = {
     '--ok': '#00ff88', '--warn': '#ffd400', '--err': '#ff5c73', '--free': '#00ff88',
     '--on-accent': '#000000',
   }),
+  synthwave: P('dark', {
+    '--bg': '#0d0221', '--bg-2': '#140433', '--panel': '#1b0842', '--panel-2': '#240b55',
+    '--raised': '#2e1068', '--line': '#43187f', '--line-soft': '#2a0e5c',
+    '--ink': '#fdf0ff', '--ink-2': '#d6a8f0', '--ink-3': '#9a6fc0',
+    '--accent': '#ff2e97', '--accent-2': '#b44cff', '--accent-3': '#2de2e6',
+  }),
+  tokyo: P('dark', {
+    '--bg': '#16161e', '--bg-2': '#1a1b26', '--panel': '#1f2335', '--panel-2': '#24283b',
+    '--raised': '#2f3549', '--line': '#3b4261', '--line-soft': '#292e42',
+    '--ink': '#c0caf5', '--ink-2': '#a9b1d6', '--ink-3': '#6b7398',
+    '--accent': '#7aa2f7', '--accent-2': '#bb9af7', '--accent-3': '#7dcfff',
+  }),
+  catppuccin: P('dark', {
+    '--bg': '#11111b', '--bg-2': '#181825', '--panel': '#1e1e2e', '--panel-2': '#262637',
+    '--raised': '#313244', '--line': '#45475a', '--line-soft': '#2b2c3e',
+    '--ink': '#cdd6f4', '--ink-2': '#bac2de', '--ink-3': '#7f849c',
+    '--accent': '#cba6f7', '--accent-2': '#f5c2e7', '--accent-3': '#fab387',
+    '--on-accent': '#11111b',
+  }),
+  gruvbox: P('dark', {
+    '--bg': '#1d2021', '--bg-2': '#232627', '--panel': '#282828', '--panel-2': '#32302f',
+    '--raised': '#3c3836', '--line': '#504945', '--line-soft': '#3a3735',
+    '--ink': '#ebdbb2', '--ink-2': '#d5c4a1', '--ink-3': '#a89984',
+    '--accent': '#fe8019', '--accent-2': '#fabd2f', '--accent-3': '#b8bb26',
+    '--on-accent': '#1d2021',
+  }),
+  monokai: P('dark', {
+    '--bg': '#1e1f1c', '--bg-2': '#232420', '--panel': '#272822', '--panel-2': '#30312a',
+    '--raised': '#3e3d32', '--line': '#49483e', '--line-soft': '#34352d',
+    '--ink': '#f8f8f2', '--ink-2': '#cfcfc2', '--ink-3': '#90908a',
+    '--accent': '#a6e22e', '--accent-2': '#66d9ef', '--accent-3': '#f92672',
+    '--on-accent': '#1e1f1c',
+  }),
+  onedark: P('dark', {
+    '--bg': '#1b1f27', '--bg-2': '#21252b', '--panel': '#282c34', '--panel-2': '#2e333d',
+    '--raised': '#353b45', '--line': '#3e4451', '--line-soft': '#2f343e',
+    '--ink': '#dcdfe4', '--ink-2': '#abb2bf', '--ink-3': '#7f848e',
+    '--accent': '#61afef', '--accent-2': '#c678dd', '--accent-3': '#98c379',
+  }),
+  rosepine: P('dark', {
+    '--bg': '#191724', '--bg-2': '#1f1d2e', '--panel': '#232136', '--panel-2': '#2a273f',
+    '--raised': '#393552', '--line': '#44415a', '--line-soft': '#2f2b45',
+    '--ink': '#e0def4', '--ink-2': '#c4c0e0', '--ink-3': '#908caa',
+    '--accent': '#ebbcba', '--accent-2': '#c4a7e7', '--accent-3': '#9ccfd8',
+    '--on-accent': '#191724',
+  }),
+  ocean: P('dark', {
+    '--bg': '#041318', '--bg-2': '#061c23', '--panel': '#08242d', '--panel-2': '#0b2e39',
+    '--raised': '#0f3a47', '--line': '#16505f', '--line-soft': '#0e3642',
+    '--ink': '#e2f7f9', '--ink-2': '#9fd0d8', '--ink-3': '#5f99a4',
+    '--accent': '#14b8a6', '--accent-2': '#06b6d4', '--accent-3': '#a3e635',
+  }),
+  matrix: P('dark', {
+    '--bg': '#000500', '--bg-2': '#010a02', '--panel': '#021006', '--panel-2': '#03170a',
+    '--raised': '#05200e', '--line': '#0a3a19', '--line-soft': '#062612',
+    '--ink': '#c8ffd4', '--ink-2': '#7fe39a', '--ink-3': '#3f9c5a',
+    '--accent': '#00ff66', '--accent-2': '#39ff14', '--accent-3': '#b6ff00',
+    '--on-accent': '#000500',
+  }),
+  arcade: P('dark', {
+    '--bg': '#0a0a1a', '--bg-2': '#10102a', '--panel': '#16163a', '--panel-2': '#1d1d4a',
+    '--raised': '#26265e', '--line': '#3a3a85', '--line-soft': '#22225a',
+    '--ink': '#fff8e7', '--ink-2': '#ffd9a0', '--ink-3': '#b39566',
+    '--accent': '#ffcc00', '--accent-2': '#ff5e5b', '--accent-3': '#00cecb',
+    '--on-accent': '#0a0a1a',
+  }),
+  solarized: P('dark', {
+    '--bg': '#00212b', '--bg-2': '#002b36', '--panel': '#073642', '--panel-2': '#0a404e',
+    '--raised': '#0e4a59', '--line': '#1d5868', '--line-soft': '#0b3e4b',
+    '--ink': '#eee8d5', '--ink-2': '#93a1a1', '--ink-3': '#657b83',
+    '--accent': '#268bd2', '--accent-2': '#2aa198', '--accent-3': '#b58900',
+  }),
+  sakura: P('light', {
+    '--bg': '#fff5f7', '--bg-2': '#fdeef2', '--panel': '#ffffff', '--panel-2': '#fff0f4',
+    '--raised': '#fbe3ea', '--line': '#f1c9d5', '--line-soft': '#f7dde5',
+    '--ink': '#3a1f2b', '--ink-2': '#6e4656', '--ink-3': '#9c7484',
+    '--accent': '#e0457b', '--accent-2': '#c2408a', '--accent-3': '#f08a4b',
+    '--editor-bg': '#ffffff', '--editor-ink': '#3a1f2b',
+  }),
+  arctic: P('light', {
+    '--bg': '#f2f7fb', '--bg-2': '#e9f1f8', '--panel': '#ffffff', '--panel-2': '#f1f6fb',
+    '--raised': '#e1ebf4', '--line': '#c9d8e6', '--line-soft': '#dce7f1',
+    '--ink': '#122033', '--ink-2': '#40546c', '--ink-3': '#71849a',
+    '--accent': '#0a84ff', '--accent-2': '#30b0c7', '--accent-3': '#5e5ce6',
+    '--editor-bg': '#ffffff', '--editor-ink': '#122033',
+  }),
 };
 
 export const PRESET_LABELS = {
   midnight: 'Midnight', nocturne: 'Nocturne', carbon: 'Carbon', ember: 'Ember',
   forest: 'Forest', dracula: 'Dracula', nord: 'Nord', daylight: 'Daylight',
   parchment: 'Parchment', contrast: 'High contrast',
+  synthwave: 'Synthwave', tokyo: 'Tokyo Night', catppuccin: 'Catppuccin', gruvbox: 'Gruvbox',
+  monokai: 'Monokai', onedark: 'One Dark', rosepine: 'Rosé Pine', ocean: 'Deep Ocean',
+  matrix: 'Matrix', arcade: 'Arcade', solarized: 'Solarized', sakura: 'Sakura', arctic: 'Arctic',
 };
+
+/** Add a preset at runtime (a plug-in's theme). Colour values only, and an
+ *  existing built-in is never replaced. Returns true when it was added. */
+export function registerPreset(id, label, scheme, tokens) {
+  if (!id || PRESETS[id] && !PRESETS[id].plugin) return false;
+  const clean = {};
+  for (const [k, v] of Object.entries(tokens || {})) {
+    if (/^--[a-z0-9-]+$/i.test(k) && /^(#[0-9a-f]{3,8}|(rgb|hsl)a?\([0-9 ,.%/-]+\))$/i.test(String(v).trim())) clean[k] = String(v).trim();
+  }
+  if (!Object.keys(clean).length) return false;
+  PRESETS[id] = { ...P(scheme === 'light' ? 'light' : 'dark', clean), plugin: true };
+  PRESET_LABELS[id] = label || id;
+  return true;
+}
 
 /* ------------------------------- defaults ------------------------------- */
 

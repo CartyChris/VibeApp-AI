@@ -12,7 +12,7 @@ no framework. ~7 MB binary.
 ## 0. Ground rules
 
 1. **Run the tests before and after every change.** `cd src-tauri && cargo test --lib`
-   — 606 tests, all passing. If a test fails after your change, you broke
+   — 621 tests, all passing. If a test fails after your change, you broke
    something, or the test encodes a rule you did not know about. Read the test
    name; they are written as sentences describing the rule.
 2. **Never delete or weaken a test to make it pass.** Several tests exist
@@ -52,6 +52,8 @@ VibeAppAI/
 │   │   ├── mcp.rs              MCP client: stdio + streamable HTTP, presets, import, approval, tool prompt
 │   │   ├── port.rs             Remake: inspect a website/folder/.app/.ipa/.apk into a port brief
 │   │   ├── adapt.rs            Phone & tablet readiness audit (hover-only, fixed widths, mouse/keys only…)
+│   │   ├── engines.rs          3D + engines: detect Godot/Unity/Unreal/Blender/vork/Cascadeur, starters, actions, errors
+│   │   ├── plugins.rs          Plug-ins: skills + MCP servers + commands + themes, VibeApp and Claude Code layouts
 │   │   ├── suggest.rs          Prompt suggestions + the trace log they learn from
 │   │   ├── swarm.rs            Agent swarms: roles, gates, and blind identity
 │   │   ├── runner.rs           Drive one model until its reply is really finished
@@ -71,6 +73,7 @@ VibeAppAI/
 │   │   ├── vault.rs            macOS Keychain
 │   │   └── state.rs            Settings, paths, path-traversal guard
 │   ├── assets/models_seed.json 94 curated models shipped in the binary
+│   ├── assets/three-r186.zip   three.js r186 (npm sha512-checked), unpacked into 3D projects' vendor/three
 │   └── tauri.conf.json
 ├── src/                        Frontend — served directly, no build step
 │   ├── index.html
@@ -89,6 +92,7 @@ VibeAppAI/
 │       ├── panels7.js          Audit — the scored pass and its findings
 │       ├── panels8.js          Context inspector, Model Arena
 │       ├── panels9.js          Tools (MCP servers), tool-call approval sheet, Remake
+│       ├── panels10.js         Engine panel, Plug-ins panel, plug-in themes and slash commands
 │       ├── palette.js          Command palette (⌘⇧P)
 │       ├── icons.js            Every symbol in the interface
 │       ├── theme.js            Appearance token engine
@@ -388,11 +392,45 @@ Violating these is a bug even if tests pass.
 - Only a folder of plain web files is ever copied in (`web_root`); anything with a
   build step is rebuilt from the brief.
 
+**Engines and 3D** (`engines.rs`)
+- Project kinds `game3d` (three.js, runs in the preview), `godot`, `unity`, `unreal`, `vork`.
+  `project_create` writes a working starter; `scaffold` never overwrites a file.
+- Engine actions are started only by the Engine panel's buttons (`engine_run`); model output never
+  reaches them. Each is a direct argv execution (`Plan`), never a shell. Actions that run the
+  project's code natively are marked `native`, and the panel asks once per project before the first.
+- three.js lives in `vendor/three` and engine output in `build/` etc.; `project::is_generated` keeps
+  both out of the model's context and the audits. Models are told never to edit vendor/three or
+  load three.js from a CDN.
+- Binary 3D and engine files (`.glb`, `.uasset`, `.pck`…) are `model`/`binary`, never text — they
+  were "text" before, which would have sent a model kilobytes of noise.
+- Importing a folder detects the engine and prunes its caches (`engines::cache_dirs`) with
+  `filter_entry`, so Unity's Library is never walked.
+- `vork_help` caches `vork help` per version and the prompt carries it, so the model writes the
+  scene format of the vork actually installed.
+
+**Plug-ins** (`plugins.rs`)
+- A plug-in is a folder; VibeApp (`plugin.json`) and Claude Code (`.claude-plugin/plugin.json`)
+  layouts both load. Skills get ids `<plugin>-<skill>` and source `plugin:<id>`.
+- Hooks and scripts are never run and are not even copied on install; the card says so. Install
+  copies text files only (`installable`), at most `MAX_FILES`/`MAX_BYTES`, through `safe_join`.
+- A plug-in's MCP servers join Tools as `<plugin>-<server>` (preset `plugin:<id>`) when it is on
+  and leave when it is off or removed. Approval rules apply to them like any other server.
+- Plug-in themes may set colour tokens to colour values only (`is_colour` in Rust,
+  `registerPreset` in theme.js); a built-in preset can never be replaced.
+- Removing moves the folder to `plugins/.trash`.
+
+**Public repository**
+- No key-shaped string may be committed, even a fake one: GitHub's secret scanning raises an
+  alert on the shape. Test fixtures split such strings with `concat!()`; `check.py` enforces it.
+
 **Skill gates**
 - A tag starting `+` is a gate: the skill only loads when the request contains one of
   those words (`x*` = prefix). `&` tags are a second group that must also match. The
   porting skills talk about "app", "phone" and "website" constantly; without gates
   they displaced the right skills on ordinary requests. Passing a gate scores +5.
+- A skill tagged with the project's kind opens its gate in that project with +2 (the request's
+  own words still decide), and a skill whose *first* ordinary tag is the kind gets +6, so the
+  engine's own skill always loads in its project.
 
 **Streaming**
 - Streamed text reaches the page through `batch::Deltas`: `stream_deltas(app, sid)`
@@ -539,8 +577,13 @@ Violating these is a bug even if tests pass.
 | Add a remake target | `port.rs::targets()` — its device must exist in `catalog::devices()` |
 | Add a phone/tablet check | `adapt.rs` — and a test proving correct mobile code passes |
 | Add a skill pack to the library | `panels5.js::SKILL_LIBRARY` (a GitHub folder in the SKILL.md layout) |
+| Add an engine action | `engines.rs::actions` + `plan` (+ a test of the argv) |
+| Change a 3D starter | `engines.rs` templates — the tests check load_steps, placeholders and the audits |
+| Detect another 3D tool | `engines.rs::detect` |
+| Add a theme | `theme.js::PRESETS` + `PRESET_LABELS` |
+| Change what a plug-in can contain | `plugins.rs::load` (and `installable` for what an install copies) |
 
-There are 124 Tauri commands. The frontend calls them via `call('name', {args})`
+There are 139 Tauri commands. The frontend calls them via `call('name', {args})`
 in `api.js`. **Top-level args are camelCased automatically; nested struct fields
 are not** (bug #8).
 
@@ -553,7 +596,7 @@ Streaming uses two events: `chat:delta` (kinds: `text`, `reasoning`, `image`,
 ## 7. Verification workflow
 
 ```bash
-python3 tools/check.py                    # frontend + 606 Rust tests + invariants
+python3 tools/check.py                    # frontend + 621 Rust tests + invariants
 npx tauri build --bundles app             # must compile clean
 ./tools/package_dmg.sh                    # signs + packages to ~/Downloads
 ```
@@ -635,11 +678,37 @@ JS uses the `el()` helper rather than template strings for DOM construction.
 
 Written so this file alone is enough to continue — no prior conversation needed.
 
-**Green as of last build (1.1.0):** 606 Rust tests, `tools/check.py` clean, 124
-Tauri commands, 36 panels, 17 JS modules, app installed to `/Applications`, DMG in
-`~/Downloads`, source on GitHub at `CartyChris/VibeApp-AI`.
+**Green as of last build (1.2.0):** 621 Rust tests, `tools/check.py` clean, 139
+Tauri commands, 38 panels, 18 JS modules, app installed to `/Applications`, DMG in
+`~/Downloads`, source on GitHub at `CartyChris/VibeApp-AI` (MIT).
 
-### What the latest build added (1.1.0)
+### What the latest build added (1.2.0)
+
+**3D and game engines.** New kinds: 3D game (three.js r186 vendored, a playable touch +
+keyboard platformer starter), Godot 4, Unity, Unreal Engine 5 and vork, each from a working
+template. The Engine panel detects Godot, Unity, Unreal, Blender, vork and Cascadeur, and runs
+Check / Build for the preview / Run / Open / Compile / Render; errors become a repair prompt.
+Importing an engine folder recognises it. Nine 3D skills (three.js games, glTF assets,
+graphics polish, character animation incl. Cascadeur, Godot, Unity, Unreal, vork, asset
+generation). MCP presets for Godot, Unity, Unreal, Blender, Tripo and Meshy.
+
+**Plug-ins**, as above, with a template, GitHub/folder install and Claude Code compatibility.
+Slash commands appear in the palette and on the plug-in card.
+
+**Skills from Claude Code / Codex**: the Skills panel imports SKILL.md folders from
+`~/.claude/skills`, `~/.codex/skills`, `~/.agents/skills` with their references.
+
+**13 more themes** (Synthwave, Tokyo Night, Catppuccin, Gruvbox, Monokai, One Dark, Rosé
+Pine, Deep Ocean, Matrix, Arcade, Solarized, Sakura, Arctic) and plug-in themes.
+
+**Security:** key-shaped test fixtures removed from the source (they raised a GitHub "Google
+API Key" alert though fake); `check.py` now fails on any key-shaped string. The first public
+commit still contains them until history is rewritten.
+
+**Also:** MIT licence; README with screenshots taken in real WebKit; binary 3D files no
+longer treated as text.
+
+### Earlier (1.1.0)
 
 **Tools (MCP).** Any model can call tools on MCP servers the user connects:
 `<vibe:tool server name>{json}</vibe:tool>`, approved per call in a sheet (once,
@@ -707,6 +776,14 @@ saved per project; `runner::drive` gives the swarm and arena real continuation a
 retrieval; custom models now resolve everywhere.
 
 ### Verified by actually running it
+- 1.2.0: the three.js starter ran in **real WKWebView**: 123 frames, keyboard moved the player,
+  a gem was collected. It passes the phone, offline and syntax audits in a unit test.
+- 1.2.0: the vork bridge rendered with the **installed vork 0.1.0** (`render_with_the_real_vork`,
+  0.7 s); the README's vork image is the starter scene rendered at std/final.
+- 1.2.0: Engine, Plug-ins, plug-in themes (injected CSS rejected), local skill import and the
+  palette were driven in the browser harness; the README screenshots are real WebKit renders
+  of that harness. The user's 12 local three.js skills were imported and checked with
+  `skills_in_a_real_folder` (2D requests do not load them).
 - MCP: a real Python MCP server over stdio (handshake, pagination, a server-sent
   ping mid-call, an error, a crash with its stderr tail) and a real HTTP server
   (session id round trip, SSE reply, a 401) — unit tests in `mcp.rs`.
@@ -733,6 +810,10 @@ retrieval; custom models now resolve everywhere.
   no runtime errors, `enterCastle` defined, the hero-select screen rendered.
 
 ### NOT verified — do not call these working
+- **Godot, Unity and Unreal are not installed on this Mac**, so no engine action has run
+  against them. The starters are checked structurally (load_steps, ids, braces, placeholders,
+  naming) and the commands as argv, not by the engines. Expect a first-run fix or two —
+  especially Unity's VibeBuild and Unreal's compile.
 0. **No real third-party MCP server has been started** (REA, ReVa, Playwright…), and no
    model has emitted a `<vibe:tool>` in a live turn. The protocol is tested against
    local fake servers; the preset commands are checked only for the package existing.

@@ -326,6 +326,9 @@ pub fn context_budget(model_context_tokens: u64) -> usize {
 
 /// Files the model never needs to read to edit an app.
 fn skip_in_context(path: &str) -> bool {
+    if crate::project::is_generated(path) {
+        return true;
+    }
     let l = path.to_lowercase();
     matches!(
         l.rsplit('.').next().unwrap_or(""),
@@ -871,6 +874,11 @@ pub const APP_KINDS: &[(&str, &str)] = &[
     ("web", "a responsive web app for phone, tablet and desktop"),
     ("tool", "a focused single-purpose utility"),
     ("site", "a marketing site or landing page"),
+    ("game3d", "a 3D game built with three.js that runs at 60fps on a phone GPU"),
+    ("godot", "a Godot 4 game, edited here as text and run, checked and built with the user's Godot"),
+    ("unity", "a Unity game in C#, edited here and built with the user's Unity editor"),
+    ("unreal", "an Unreal Engine 5 game in C++, edited here and compiled with the user's Unreal Engine"),
+    ("vork", "a 3D scene or film rendered with vork, a headless GPU renderer"),
 ];
 
 /// The build agent's operating instructions. This is where the app's opinion

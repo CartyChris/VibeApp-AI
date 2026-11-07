@@ -1,6 +1,6 @@
 [package]
 name = "vibeapp-ai"
-version = "1.1.0"
+version = "1.2.0"
 description = "Build iOS, web and desktop apps by describing them."
 authors = ["VibeApp AI"]
 edition = "2021"

@@ -17,6 +17,7 @@ import './panels6.js';
 import './panels7.js';
 import './panels8.js';
 import './panels9.js';
+import { importEngineProject, runPluginCommand } from './panels10.js';
 import { openPalette } from './palette.js';
 import { wireAdvisorStream } from './panels3.js';
 import { visiblePanels } from './appearance.js';
@@ -1128,6 +1129,11 @@ const PROJECT_KINDS = [
   { id: 'web',    icon: 'net', label: 'Web app',     hint: 'Responsive for phone, tablet and desktop.' },
   { id: 'tool',   icon: 'tool', label: 'Utility',     hint: 'One job, done well. Calculators, converters, trackers.' },
   { id: 'site',   icon: 'file', label: 'Site or page', hint: 'A landing page or a small marketing site.' },
+  { id: 'game3d', icon: 'cube', label: '3D game (three.js)', hint: 'Runs in the preview. three.js copied in, touch and keyboard, a playable starter.' },
+  { id: 'godot',  icon: 'game', label: 'Godot game',  hint: 'A Godot 4 project. Run, check and build for the web with your Godot.' },
+  { id: 'unity',  icon: 'box',  label: 'Unity game',  hint: 'A Unity C# project. Build WebGL, iOS or Android with your Unity.' },
+  { id: 'unreal', icon: 'bolt', label: 'Unreal game', hint: 'An Unreal Engine 5 C++ project. Compile and open with your Unreal.' },
+  { id: 'vork',   icon: 'lens', label: 'vork scene',  hint: 'Ray-traced stills and shots, rendered on your GPU by vork.' },
 ];
 
 /**
@@ -1491,6 +1497,11 @@ function palette() {
       cmd('inbox', 'Import a project', 'HTML, zip or folder', importProject),
       cmd('remake', 'Remake an app', 'A website, folder or app → phone, tablet, desktop', () => emit('show-panel', 'remake')),
       cmd('plug', 'Connect tools', 'MCP servers: Ghidra, Playwright, GitHub', () => emit('show-panel', 'mcp')),
+      cmd('cube', 'Import a game engine project', 'Godot, Unity, Unreal or vork folder', importEngineProject),
+      cmd('cube', 'Engine', 'Run, check and build the 3D project', () => emit('show-panel', 'engine')),
+      cmd('puzzle', 'Plug-ins', 'Install or create one', () => emit('show-panel', 'plugins')),
+      ...(S.pluginCommands || []).map(c => ({ icon: 'puzzle', label: `/${c.name}`, hint: c.description || c.plugin,
+        group: 'Plug-in commands', run: () => runPluginCommand(c) })),
       cmd('folder', 'Switch project', '⌘P', openProjectSheet),
       cmd('chip', 'Choose a model', '⌘K', openModelSheet),
       cmd('rewind', 'Undo', S.history?.undo_label || 'Nothing to undo', () => stepHistory('undo')),
@@ -1834,6 +1845,7 @@ async function boot() {
   $('#projectChip').onclick = openProjectSheet;
   $('#newProjectBtn').onclick = newProject;
   $('#importProjectBtn').onclick = importProject;
+  $('#importEngineBtn').onclick = () => { $('#projectSheet').hidden = true; importEngineProject(); };
   $('#newChatBtn').onclick = async () => {
     if (S.chat.length && !await askConfirm('Clear the conversation?',
         { body: 'Your files and everything you have built are kept. Only the chat history goes.',

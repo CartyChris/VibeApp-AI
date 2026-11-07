@@ -1285,3 +1285,9 @@ table.grid tr:hover td { background: var(--hover); }
 .brief h1 { font-size: 15px; margin: 4px 0 6px; }
 .brief h2 { font-size: 13px; margin: 12px 0 4px; color: var(--ink-2); }
 .brief ul { margin: 0; padding-left: 18px; }
+
+/* ---- Engine ----------------------------------------------------------------- */
+.engine-tool { padding: 6px 0; border-bottom: 1px solid var(--line-soft); align-items: flex-start; }
+.engine-tool .hint { overflow-wrap: anywhere; }
+.engine-tool .dot { width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; background: var(--line); flex: none; }
+.engine-tool .dot.on { background: var(--ok); }

@@ -60,6 +60,9 @@ const I = {
   trophy: 'M6 3h8v5a4 4 0 0 1-8 0z|M6 4.5H3.5V6A2.5 2.5 0 0 0 6 8.5|M14 4.5h2.5V6A2.5 2.5 0 0 1 14 8.5|M10 12v3|M7 17h6|M8 15h4',
   rewind: 'M9 5l-5 5 5 5|M16 5l-5 5 5 5',
   help:   'M10 2.5a7.5 7.5 0 1 0 0 15 7.5 7.5 0 0 0 0-15z|M7.8 7.6a2.3 2.3 0 1 1 3.4 2c-.8.5-1.2 1-1.2 1.9|M10 14.2h.01',
+  cube:   'M10 2.5 17 6.2v7.6L10 17.5 3 13.8V6.2z|M3 6.2l7 3.8 7-3.8|M10 10v7.5',
+  lens:   'M10 2.5a7.5 7.5 0 1 0 0 15 7.5 7.5 0 0 0 0-15z|M10 2.5 7 10|M17.4 8.8 10 7|M13.5 16.6 13 9|M3.2 13 9.5 13|M4.2 5 9.5 10',
+  puzzle: 'M8 3h4v2a1.5 1.5 0 0 0 3 0V3h2v5h-2a1.5 1.5 0 0 0 0 3h2v6h-5v-2a1.5 1.5 0 0 0-3 0v2H3v-6h2a1.5 1.5 0 0 0 0-3H3V3z',
   plug:   'M7 2.5v4|M13 2.5v4|M5 6.5h10v3a5 5 0 0 1-10 0z|M10 14.5v3',
   remake: 'M3.5 7h11.5l-3-3|M16.5 13H5l3 3',
   chip:   'M6 6h8v8H6z|M8.5 2.5V6|M11.5 2.5V6|M8.5 14v3.5|M11.5 14v3.5|M2.5 8.5H6|M2.5 11.5H6|M14 8.5h3.5|M14 11.5h3.5',
@@ -78,5 +81,6 @@ export function icon(name) {
 
 /** The icon for a kind of project. */
 export function kindIcon(kind) {
-  return { mobile: 'phone', game: 'game', web: 'net', tool: 'tool', site: 'file' }[kind] || 'spark';
+  return { mobile: 'phone', game: 'game', web: 'net', tool: 'tool', site: 'file',
+    game3d: 'cube', godot: 'game', unity: 'box', unreal: 'bolt', vork: 'lens' }[kind] || 'spark';
 }

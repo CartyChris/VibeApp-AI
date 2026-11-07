@@ -3,6 +3,7 @@
 
 pub mod a11y;
 pub mod adapt;
+pub mod engines;
 pub mod batch;
 #[cfg(test)]
 mod bench;
@@ -15,6 +16,7 @@ pub mod fixer;
 pub mod i18n;
 pub mod local;
 pub mod mcp;
+pub mod plugins;
 pub mod port;
 pub mod offline;
 pub mod perf;
@@ -201,7 +203,21 @@ fn projects_list() -> Vec<project::Project> {
 
 #[tauri::command]
 fn project_create(name: String, kind: String, emoji: String) -> R<project::Project> {
-    e(project::create(&name, &kind, &emoji))
+    let mut p = e(project::create(&name, &kind, &emoji))?;
+    // A 3D or engine project starts from a working template, not a blank page.
+    if engines::is_engine_kind(&kind) {
+        let tools = engines::detect_cached();
+        e(engines::scaffold(&kind, &p.name, &project::files_dir(&p.id), &tools))?;
+        if kind != "game3d" {
+            p.device_id = "web-laptop".into();
+        }
+        p.entry = if kind == "unity" || kind == "unreal" { String::new() } else { "index.html".into() };
+        if kind == "godot" {
+            p.entry = "build/web/index.html".into();
+        }
+        e(project::save(&p))?;
+    }
+    Ok(p)
 }
 
 #[tauri::command]
@@ -468,7 +484,7 @@ pub struct ChatRequest {
 fn context_files(pid: &str) -> Vec<(String, String)> {
     project::list_live(pid)
         .into_iter()
-        .filter(|f| f.is_text && f.size < 400_000)
+        .filter(|f| f.is_text && f.size < 400_000 && !project::is_generated(&f.path))
         .filter_map(|f| project::read_live(pid, &f.path).ok().map(|b| (f.path, b)))
         .collect()
 }
@@ -735,6 +751,18 @@ fn build_turn(
             system.push_str(&rails);
         }
     }
+    // An engine project: its conventions, and what the user can run here.
+    let mut engine_chars = 0;
+    if engines::is_engine_kind(&proj.kind) {
+        let tools = engines::detect_cached();
+        let help = if proj.kind == "vork" { engines::vork_help(&tools) } else { None };
+        let block = engines::prompt_block(&proj.kind, &tools, help.as_deref());
+        if !block.is_empty() {
+            engine_chars = block.len();
+            system.push_str("\n\n");
+            system.push_str(&block);
+        }
+    }
     // Tools on the user's MCP servers. The planner writes prose only, so it
     // gets none; the advisor may read through them.
     let mut tool_chars = 0;
@@ -758,7 +786,7 @@ fn build_turn(
     }
 
     let known = map.len() + memory.len() + port_brief.len() + source.len() + stack_txt.len() + skill_chars + rail_chars
-        + tool_chars + extra.trim().len();
+        + tool_chars + engine_chars + extra.trim().len();
     let mut sections = vec![
         Section { name: "Instructions".into(), chars: system.len().saturating_sub(known) },
         Section { name: "Project map".into(), chars: map.len() },
@@ -771,6 +799,7 @@ fn build_turn(
         ("Skills", skill_chars),
         ("Your patterns", rail_chars),
         ("Tools", tool_chars),
+        ("Engine", engine_chars),
         ("Extra direction", extra.trim().len()),
     ] {
         if chars > 0 {
@@ -2277,6 +2306,178 @@ fn audit_run(id: String) -> AuditReport {
 }
 
 // ---------------------------------------------------------------------------
+// Plug-ins, and skills other agents already have
+// ---------------------------------------------------------------------------
+
+#[tauri::command]
+fn plugins_list() -> Vec<plugins::Plugin> {
+    plugins::list()
+}
+
+#[tauri::command]
+fn plugin_create(name: String, description: String) -> R<plugins::Plugin> {
+    if name.trim().is_empty() {
+        return Err("Give the plug-in a name.".into());
+    }
+    e(plugins::create(&name, &description))
+}
+
+#[tauri::command]
+fn plugin_set_enabled(id: String, on: bool) -> R<plugins::Plugin> {
+    e(plugins::set_enabled(&id, on))
+}
+
+#[tauri::command]
+fn plugin_remove(id: String) -> R<()> {
+    e(plugins::remove(&id))
+}
+
+#[tauri::command]
+fn plugin_install_dir(path: String) -> R<plugins::Plugin> {
+    e(plugins::install_dir(&PathBuf::from(path)))
+}
+
+/// Install from a GitHub repository or folder: the text files of the plug-in
+/// only, fetched one by one, within the size limits in `plugins`.
+#[tauri::command]
+async fn plugin_install_url(s: State<'_, AppState>, url: String) -> R<plugins::Plugin> {
+    let gt = skills::github_tree(&url).ok_or("Paste a GitHub repository or folder link.")?;
+    let get = |u: String| {
+        let http = s.http.clone();
+        async move {
+            let r = http.get(&u).header("User-Agent", "VibeApp-AI").timeout(std::time::Duration::from_secs(20))
+                .send().await.map_err(|e| format!("Could not reach {u}: {e}"))?;
+            if !r.status().is_success() {
+                return Err(format!("{u} answered {}", r.status()));
+            }
+            r.text().await.map_err(|e| e.to_string())
+        }
+    };
+    let listing: serde_json::Value = serde_json::from_str(&get(gt.api.clone()).await?).map_err(|e| e.to_string())?;
+    let prefix = if gt.prefix.is_empty() { String::new() } else { format!("{}/", gt.prefix) };
+    let paths: Vec<String> = listing["tree"].as_array().cloned().unwrap_or_default().iter()
+        .filter(|e| e["type"] == "blob" && e["size"].as_u64().unwrap_or(0) <= 1024 * 1024)
+        .filter_map(|e| e["path"].as_str().map(String::from))
+        .filter(|p| p.starts_with(&prefix))
+        .filter(|p| [".md", ".json", ".txt", ".yml", ".yaml", ".toml"].iter().any(|x| p.to_lowercase().ends_with(x)))
+        .take(plugins::MAX_FILES)
+        .collect();
+    let mut files = Vec::new();
+    for p in paths {
+        let rel = p.strip_prefix(&prefix).unwrap_or(&p).to_string();
+        if let Ok(body) = get(gt.raw(&p)).await {
+            files.push((rel, body));
+        }
+    }
+    e(plugins::install_files(&gt.repo, files))
+}
+
+#[derive(Serialize)]
+struct PluginCommand {
+    plugin: String,
+    name: String,
+    description: String,
+    template: String,
+}
+
+#[tauri::command]
+fn plugin_commands() -> Vec<PluginCommand> {
+    plugins::list().into_iter().filter(|p| p.enabled).flat_map(|p| {
+        let name = p.manifest.name.clone();
+        p.commands.into_iter().map(move |c| PluginCommand { plugin: name.clone(), name: c.name, description: c.description, template: c.template })
+    }).collect()
+}
+
+#[tauri::command]
+fn plugin_themes() -> Vec<plugins::Theme> {
+    plugins::list().into_iter().filter(|p| p.enabled).flat_map(|p| p.themes).collect()
+}
+
+#[tauri::command]
+fn skills_scan_local() -> Vec<skills::LocalSkill> {
+    skills::scan_local()
+}
+
+/// Read skill folders from Claude Code, Codex or another agent as drafts.
+/// Only folders under the known skill roots are read.
+#[tauri::command]
+fn skill_import_local(paths: Vec<String>) -> R<Vec<skills::Draft>> {
+    let roots: Vec<PathBuf> = skills::local_skill_roots().into_iter().map(|(_, p)| p).collect();
+    let mut out = Vec::new();
+    for p in paths {
+        let dir = PathBuf::from(&p);
+        let canon = dir.canonicalize().map_err(|e| e.to_string())?;
+        if !roots.iter().any(|r| r.canonicalize().is_ok_and(|r| canon.starts_with(r))) {
+            return Err(format!("{p} is not in a skills folder."));
+        }
+        if let Some((name, text)) = skills::read_pack_dir(&canon, 16_000) {
+            out.push(skills::draft_from_text(&format!("local:{p}"), &name, &text));
+        }
+    }
+    Ok(out)
+}
+
+// ---------------------------------------------------------------------------
+// Game engines and 3D tools
+// ---------------------------------------------------------------------------
+
+#[tauri::command]
+fn engines_detect() -> Vec<engines::Tool> {
+    engines::detect()
+}
+
+#[tauri::command]
+fn engine_actions(kind: String) -> Vec<engines::Action> {
+    engines::actions(&kind)
+}
+
+/// Run an engine action the user pressed. Never reached from model output.
+#[tauri::command]
+async fn engine_run(id: String, action: String) -> R<engines::RunOutput> {
+    let mut proj = e(project::load(&id))?;
+    let tools = engines::detect_cached();
+    let root = project::live_dir(&id);
+    let plan = e(engines::plan(&proj.kind, &action, &root, &tools))?;
+    let out = e(engines::run(&proj.kind, &plan).await)?;
+    if let Some(entry) = out.entry.as_ref() {
+        if proj.entry != *entry {
+            proj.entry = entry.clone();
+            e(project::save(&proj))?;
+        }
+    }
+    Ok(out)
+}
+
+#[tauri::command]
+fn engine_repair_prompt(engine: String, action: String, errors: Vec<String>) -> String {
+    engines::repair_prompt(&engine, &action, &errors)
+}
+
+/// Import a folder as a project, recognising Godot, Unity, Unreal and vork
+/// projects by their own files.
+#[tauri::command]
+fn project_import_folder(path: String) -> R<project::Project> {
+    let src = PathBuf::from(&path);
+    if !src.is_dir() {
+        return Err("Choose a folder.".into());
+    }
+    let kind = engines::detect_kind(&src).unwrap_or("web");
+    let name = src.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_else(|| "Imported".into());
+    let mut p = e(project::create(&name, kind, ""))?;
+    let files = e(project::import_path(&p.id, &src, false))?;
+    if engines::is_engine_kind(kind) && kind != "game3d" {
+        p.device_id = "web-laptop".into();
+    }
+    p.entry = match kind {
+        "godot" => "build/web/index.html".into(),
+        "unity" | "unreal" => String::new(),
+        _ => agent::pick_entry(&files).unwrap_or_else(|| "index.html".into()),
+    };
+    e(project::save(&p))?;
+    Ok(p)
+}
+
+// ---------------------------------------------------------------------------
 // Remake an existing app
 // ---------------------------------------------------------------------------
 
@@ -3442,6 +3643,9 @@ pub fn run() {
             mcp_list, mcp_presets, mcp_save, mcp_remove, mcp_set, mcp_test, mcp_stop, mcp_call,
             mcp_answer, mcp_import_scan, mcp_import,
             port_targets, port_inspect, port_start, port_get, port_set,
+            engines_detect, engine_actions, engine_run, engine_repair_prompt, project_import_folder,
+            plugins_list, plugin_create, plugin_set_enabled, plugin_remove, plugin_install_dir, plugin_install_url,
+            plugin_commands, plugin_themes, skills_scan_local, skill_import_local,
         ])
         .run(tauri::generate_context!())
         .expect("error while running VibeApp AI");

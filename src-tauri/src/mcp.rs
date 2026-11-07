@@ -414,6 +414,49 @@ pub fn presets() -> Vec<Preset> {
             server: stdio("jadx", "JADX", "uv", &["--directory", "/path/to/jadx-mcp-server", "run", "jadx_mcp_server.py"], &[]),
         },
         Preset {
+            id: "godot", name: "Godot editor", group: "3D and game engines",
+            blurb: "Launch the editor, run the project and read its debug output, create scenes and nodes, and manage UIDs in a Godot 4 project.",
+            needs: "Godot 4 and Node 18+. GODOT_PATH is optional when Godot is in /Applications.",
+            homepage: "https://github.com/Coding-Solo/godot-mcp",
+            server: stdio("godot", "Godot", "npx", &["-y", "@coding-solo/godot-mcp"],
+                          &[("GODOT_PATH", "/Applications/Godot.app/Contents/MacOS/Godot", false)]),
+        },
+        Preset {
+            id: "unity", name: "Unity editor (MCP for Unity)", group: "3D and game engines",
+            blurb: "Drive the open Unity Editor: create scenes and GameObjects, edit C#, manage assets, run tests and builds.",
+            needs: "Unity 2021.3+ with the MCP for Unity package (Package Manager → Add from git URL: https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity), and uv.",
+            homepage: "https://github.com/CoplayDev/unity-mcp",
+            server: stdio("unity", "Unity", "uvx", &["--from", "mcpforunityserver", "mcp-for-unity", "--transport", "stdio"], &[]),
+        },
+        Preset {
+            id: "unreal", name: "Unreal editor", group: "3D and game engines",
+            blurb: "Spawn and edit actors, Blueprints and input in a running Unreal Engine 5 editor.",
+            needs: "Unreal Engine 5 with the UnrealMCP plugin from the repo, uv, and the path to its Python folder below.",
+            homepage: "https://github.com/chongdashu/unreal-mcp",
+            server: stdio("unreal", "Unreal", "uv", &["--directory", "/path/to/unreal-mcp/Python", "run", "unreal_mcp_server.py"], &[]),
+        },
+        Preset {
+            id: "blender", name: "Blender", group: "3D and game engines",
+            blurb: "Model, texture, light and export glTF in Blender by asking: create and edit objects, apply materials, pull Poly Haven assets, run scene scripts.",
+            needs: "Blender with the MCP for Blender add-on enabled (addon.py from the repo), and uv.",
+            homepage: "https://github.com/ahujasid/blender-mcp",
+            server: stdio("blender", "Blender", "uvx", &["mcp-for-blender"], &[]),
+        },
+        Preset {
+            id: "tripo", name: "Tripo 3D generation", group: "3D and game engines",
+            blurb: "Generate a 3D model from a description with Tripo and import it into Blender, ready to clean up and export as .glb.",
+            needs: "Blender with the Tripo AI add-on and the Blender MCP add-on running, and uv.",
+            homepage: "https://github.com/VAST-AI-Research/tripo-mcp",
+            server: stdio("tripo", "Tripo", "uvx", &["tripo-mcp"], &[]),
+        },
+        Preset {
+            id: "meshy", name: "Meshy 3D generation", group: "3D and game engines",
+            blurb: "Text-to-3D, image-to-3D, retexturing, remeshing and rigging with Meshy, downloaded as glTF or FBX.",
+            needs: "Node 18+ and a Meshy API key, stored in the Keychain. Generation uses your Meshy credits.",
+            homepage: "https://github.com/meshy-dev/meshy-mcp-server",
+            server: stdio("meshy", "Meshy", "npx", &["-y", "@meshy-ai/meshy-mcp-server"], &[("MESHY_API_KEY", "", true)]),
+        },
+        Preset {
             id: "playwright", name: "Playwright browser", group: "Websites",
             blurb: "Opens a real browser: navigate a site, read its accessibility tree, click through flows, take screenshots. The best way to inventory a website before remaking it.",
             needs: "Node 18+.",
@@ -1483,7 +1526,7 @@ s.serve_forever()
             assert!(p.server.env.iter().chain(&p.server.headers).all(|v| !v.secret || v.value.is_empty()),
                     "a preset never ships a credential");
         }
-        for want in ["rea", "reva", "ghidra", "playwright"] {
+        for want in ["rea", "reva", "ghidra", "playwright", "godot", "unity", "unreal", "blender", "meshy"] {
             assert!(ids.contains(&want), "{want}");
         }
     }

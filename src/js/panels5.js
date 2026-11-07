@@ -178,8 +178,35 @@ reg({
           hint: 'Markdown, PDF, Word, RTF, HTML or plain text' },
         { id: 'library', icon: 'star', label: 'The skill library',
           hint: 'ReVa and REA reverse engineering, Anthropic skills' },
+        { id: 'local', icon: 'terminal', label: 'Skills from Claude Code or Codex',
+          hint: 'The SKILL.md folders already on this Mac (~/.claude/skills, ~/.codex/skills)' },
       ], { help: 'Anything can become a skill. If it is not written as instructions yet, a model rewrites it.' });
       if (!how) return;
+
+      if (how === 'local') {
+        const found = await guard(() => call('skills_scan_local'), 'Looking');
+        if (!found?.length) return toast('No skills found in ~/.claude/skills, ~/.codex/skills or ~/.agents/skills.');
+        const have = new Set((await call('skills_list')).map(s => s.name.toLowerCase()));
+        const card = el('div', { class: 'card draft' }, el('b', { text: `${found.length} skills on this Mac` }),
+          el('p', { class: 'hint', text: 'Pick the ones to bring in. They are copied into VibeApp; the originals are not touched.' }));
+        const picks = found.map(f => {
+          const box = el('input', { type: 'checkbox' });
+          box.checked = !have.has(f.name.toLowerCase());
+          card.append(el('label', { class: 'row hint' }, box, el('b', { text: f.name }), el('span', { text: `${f.origin} — ${f.description.slice(0, 110)}` })));
+          return { f, box };
+        });
+        card.append(el('div', { class: 'row actions' },
+          el('button', { class: 'btn primary', text: 'Review selected', onclick: async () => {
+            const paths = picks.filter(p => p.box.checked).map(p => p.f.path);
+            if (!paths.length) return;
+            const ds = await guard(() => call('skill_import_local', { paths }), 'Reading');
+            card.remove();
+            if (ds) showDrafts(ds);
+          } }),
+          el('button', { class: 'btn ghost', text: 'Cancel', onclick: () => card.remove() })));
+        drafts.prepend(card);
+        return;
+      }
 
       if (how === 'library') {
         const pick = await askChoice('Import a skill pack', SKILL_LIBRARY,

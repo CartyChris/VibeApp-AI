@@ -161,12 +161,31 @@ pub fn lang_of(path: &str) -> &'static str {
         "mp3" | "wav" | "m4a" | "ogg" | "aac" => "audio",
         "mp4" | "mov" | "webm" => "video",
         "ttf" | "otf" | "woff" | "woff2" => "font",
+        "gd" => "gdscript",
+        "tscn" | "tres" | "godot" | "cfg" | "ini" => "ini",
+        "cs" => "csharp",
+        "cpp" | "cc" | "h" | "hpp" => "cpp",
+        "uproject" | "uplugin" | "gltf" => "json",
+        "glsl" | "vert" | "frag" | "wgsl" | "hlsl" | "slang" | "gdshader" | "shader" => "shader",
+        // 3D models, engine binaries and compiled builds are not text, and
+        // reading one as text sends a model kilobytes of noise.
+        "glb" | "fbx" | "obj" | "blend" | "dae" | "usd" | "usdz" | "usdc" | "3ds" | "stl" | "ply" | "vrm" => "model",
+        "uasset" | "umap" | "pck" | "res" | "scn" | "wasm" | "bin" | "data" | "ktx2" | "basis" | "hdr" | "exr"
+        | "dds" | "tga" | "psd" | "asset" | "unitypackage" | "apk" | "ipa" | "aab" | "so" | "dylib" | "dll" => "binary",
         _ => "text",
     }
 }
 
 pub fn is_text_lang(l: &str) -> bool {
-    !matches!(l, "image" | "audio" | "video" | "font")
+    !matches!(l, "image" | "audio" | "video" | "font" | "model" | "binary")
+}
+
+/// Vendored libraries and engine output: in the project, but never source a
+/// model should read or an audit should judge.
+pub fn is_generated(path: &str) -> bool {
+    const DIRS: &[&str] = &["vendor/three/", "build/", "Library/", "Temp/", "Logs/", "obj/", "Intermediate/",
+                            "Saved/", "Binaries/", "DerivedDataCache/", ".godot/"];
+    DIRS.iter().any(|d| path.starts_with(d))
 }
 
 pub fn list_files(id: &str) -> Vec<FileEntry> {
@@ -255,6 +274,14 @@ pub fn mime_of(path: &str) -> &'static str {
         "woff" => "font/woff",
         "ttf" => "font/ttf",
         "wasm" => "application/wasm",
+        "glb" => "model/gltf-binary",
+        "gltf" => "model/gltf+json",
+        "usdz" => "model/vnd.usdz+zip",
+        "ktx2" => "image/ktx2",
+        "hdr" => "image/vnd.radiance",
+        "otf" => "font/otf",
+        "mov" => "video/quicktime",
+        "bin" | "pck" | "data" | "fbx" | "obj" | "blend" | "exr" | "basis" | "uasset" | "umap" => "application/octet-stream",
         _ => "text/plain; charset=utf-8",
     }
 }
@@ -1019,7 +1046,7 @@ fn find_ci(hay: &str, needle: &str) -> Option<usize> {
 // Import / export
 // ---------------------------------------------------------------------------
 
-const SKIP_DIRS: &[&str] = &[
+pub(crate) const SKIP_DIRS: &[&str] = &[
     "node_modules", ".git", "target", "dist", "build", ".next", "__pycache__",
     ".venv", "venv", "Pods", ".DS_Store", ".cache",
 ];
@@ -1046,7 +1073,13 @@ pub fn import_path(id: &str, src: &Path, normalize: bool) -> Result<Vec<String>>
     } else if src.is_dir() {
         // If the folder has exactly one top-level dir and nothing else, unwrap it.
         let base = unwrap_single_dir(src);
-        for e in walkdir::WalkDir::new(&base).into_iter().filter_map(|e| e.ok()) {
+        // An engine project carries caches the engine rebuilds (Unity's
+        // Library is often gigabytes). Prune them rather than walk them.
+        let caches = crate::engines::detect_kind(&base).map(crate::engines::cache_dirs).unwrap_or(&[]);
+        let walker = walkdir::WalkDir::new(&base).into_iter().filter_entry(|e| {
+            !(e.depth() == 1 && e.file_type().is_dir() && caches.iter().any(|c| e.file_name() == *c))
+        });
+        for e in walker.filter_map(|e| e.ok()) {
             if !e.file_type().is_file() {
                 continue;
             }
@@ -1195,6 +1228,28 @@ pub fn export_zip(id: &str, dst: &Path) -> Result<u64> {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn importing_an_engine_project_leaves_its_caches_behind() {
+        let src = std::env::temp_dir().join(format!("vibe-imp-{}", uuid::Uuid::new_v4()));
+        fs::create_dir_all(src.join("Assets/Scripts")).unwrap();
+        fs::create_dir_all(src.join("ProjectSettings")).unwrap();
+        fs::create_dir_all(src.join("Library/ScriptAssemblies")).unwrap();
+        fs::write(src.join("Assets/Scripts/A.cs"), "class A {}").unwrap();
+        fs::write(src.join("ProjectSettings/ProjectVersion.txt"), "m_EditorVersion: 6000.0").unwrap();
+        fs::write(src.join("Library/ScriptAssemblies/huge.dll"), "x").unwrap();
+        let p = create("Imported", "unity", "").unwrap();
+        let got = import_path(&p.id, &src, false).unwrap();
+        assert!(got.contains(&"Assets/Scripts/A.cs".to_string()));
+        assert!(!got.iter().any(|f| f.starts_with("Library/")), "{got:?}");
+        assert_eq!(lang_of("player.gd"), "gdscript");
+        assert!(!is_text_lang(lang_of("hero.glb")) && !is_text_lang(lang_of("Level.umap")));
+        assert_eq!(mime_of("hero.glb"), "model/gltf-binary");
+        assert!(is_generated("vendor/three/three.core.js") && is_generated("build/web/index.html"));
+        assert!(!is_generated("src/vendor.js"));
+        let _ = delete(&p.id);
+        let _ = fs::remove_dir_all(src);
+    }
+
     #[test]
     fn the_journal_appends_and_reads_back_exactly() {
         let id = format!("test-{}", uuid::Uuid::new_v4());

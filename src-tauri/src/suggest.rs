@@ -360,6 +360,22 @@ pub fn starter_page(kind: &str) -> Vec<Suggestion> {
             s("Word ladder", "A daily word puzzle: six guesses, per-letter colour feedback, a share card, and a streak."),
             s("Idle factory", "An idle factory: buy machines, watch output tick up, offline earnings, prestige reset."),
         ],
+        "game3d" | "godot" | "unity" | "unreal" => vec![
+            s("Collect-a-thon", "Grow the starter into a 3D collect-a-thon: three levels, moving platforms, a timer, and a results screen."),
+            s("Kart racer", "A 3D kart racer: one track with checkpoints, drift boost, three AI opponents, and a lap counter."),
+            s("Arena survival", "A third-person arena survival game: waves of enemies, a dodge roll, pickups, and a high score."),
+            s("Low-poly explorer", "A calm low-poly exploration game: a small island, day/night cycle, collectible shells, ambient sound."),
+            s("Physics puzzler", "A 3D physics puzzle: stack and topple blocks to reach a goal, five handmade levels, undo."),
+            s("Third-person character", "Replace the capsule with an animated third-person character: idle, run and jump clips blended by speed."),
+        ],
+        "vork" => vec![
+            s("Product shot", "A studio product shot: a glossy object on a seamless backdrop, softbox key light, rim light, shallow depth of field."),
+            s("Sunset diorama", "A small diorama at sunset: low warm sun, long shadows, a few props, atmospheric haze."),
+            s("Turntable film", "A 5-second turntable film of the hero object: 120 frames, camera orbiting, rendered to an MP4."),
+            s("Neon alley", "A wet night alley with neon signs reflected in puddles and a glowing sculpture in the middle."),
+            s("Glass and caustics", "A glass sculpture on a table casting caustics, rendered with the path-tracing profile."),
+            s("Space scene", "A spaceship drifting past a ringed planet with a starfield and a distant sun."),
+        ],
         "tool" | "site" => vec![
             s("Split the bill", "A bill splitter: enter a total, add people, assign items, round tips, share the result as text."),
             s("Unit converter", "A unit converter with a searchable list, recent pairs, and live two-way conversion."),
