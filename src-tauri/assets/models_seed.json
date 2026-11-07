@@ -1,0 +1,2215 @@
+[
+ {
+  "id": "openrouter/free",
+  "name": "Free Models Router",
+  "vendor": "openrouter",
+  "tier": "Free",
+  "badge": "free-router",
+  "context": 200000,
+  "max_out": 0,
+  "in_mod": [
+   "text",
+   "image"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.0,
+  "price_out": 0.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "The simplest way to get free inference. openrouter/free is a router that selects free models at random from the models available on OpenRouter. The router smartly filters for models that..."
+ },
+ {
+  "id": "google/lyria-3-pro-preview",
+  "name": "Google: Lyria 3 Pro Preview",
+  "vendor": "google",
+  "tier": "Audio",
+  "badge": "free",
+  "context": 1048576,
+  "max_out": 65536,
+  "in_mod": [
+   "text",
+   "image"
+  ],
+  "out_mod": [
+   "text",
+   "audio"
+  ],
+  "price_in": 0.0,
+  "price_out": 0.0,
+  "price_img": 0.0,
+  "tools": false,
+  "reasoning": false,
+  "structured": false,
+  "desc": "Full-length songs are priced at $0.08 per song. Lyria 3 is Google's family of music generation models, available through the Gemini API. With Lyria 3, you can generate high-quality, 48kHz..."
+ },
+ {
+  "id": "google/lyria-3-clip-preview",
+  "name": "Google: Lyria 3 Clip Preview",
+  "vendor": "google",
+  "tier": "Audio",
+  "badge": "free",
+  "context": 1048576,
+  "max_out": 65536,
+  "in_mod": [
+   "text",
+   "image"
+  ],
+  "out_mod": [
+   "text",
+   "audio"
+  ],
+  "price_in": 0.0,
+  "price_out": 0.0,
+  "price_img": 0.0,
+  "tools": false,
+  "reasoning": false,
+  "structured": false,
+  "desc": "30 second duration clips are priced at $0.04 per clip. Lyria 3 is Google's family of music generation models, available through the Gemini API. With Lyria 3, you can generate..."
+ },
+ {
+  "id": "nvidia/nemotron-3-ultra-550b-a55b:free",
+  "name": "NVIDIA: Nemotron 3 Ultra (free)",
+  "vendor": "nvidia",
+  "tier": "Free",
+  "badge": "free",
+  "context": 1000000,
+  "max_out": 65536,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.0,
+  "price_out": 0.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": false,
+  "desc": "NVIDIA Nemotron 3 Ultra is an open frontier-reasoning and orchestration model from NVIDIA, with 55B active parameters out of 550B total (MoE). Built on a hybrid Transformer-Mamba mixture-of-experts architecture, it..."
+ },
+ {
+  "id": "inclusionai/ling-3.0-tiny:free",
+  "name": "inclusionAI: Ling 3.0 Tiny (free)",
+  "vendor": "inclusionai",
+  "tier": "Free",
+  "badge": "free",
+  "context": 262144,
+  "max_out": 32768,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.0,
+  "price_out": 0.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": false,
+  "desc": "Ling 3.0 Tiny is a mixture-of-experts model from InclusionAI, with 1.3B active parameters out of 7.9B total. It is designed for responsive agents, instruction following, and multi-turn conversations, with switchable..."
+ },
+ {
+  "id": "poolside/laguna-s-2.1:free",
+  "name": "Poolside: Laguna S 2.1 (free)",
+  "vendor": "poolside",
+  "tier": "Free",
+  "badge": "free",
+  "context": 262144,
+  "max_out": 32768,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.0,
+  "price_out": 0.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": false,
+  "desc": "Laguna S 2.1 is the latest coding agent model from [Poolside](<https://poolside.ai/>). Laguna S 2.1 is a 118B total parameter model with 8B active parameters, scoring 70.2% on Terminal-Bench 2.1 and..."
+ },
+ {
+  "id": "poolside/laguna-xs-2.1:free",
+  "name": "Poolside: Laguna XS 2.1 (free)",
+  "vendor": "poolside",
+  "tier": "Free",
+  "badge": "free",
+  "context": 262144,
+  "max_out": 32768,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.0,
+  "price_out": 0.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": false,
+  "desc": "Laguna XS 2.1 is the latest coding agent model in the 33B-A3B category from [Poolside](https://poolside.ai/) and a step forward from their Laguna XS.2 model (released in April 2026). It combines..."
+ },
+ {
+  "id": "google/gemma-4-26b-a4b-it:free",
+  "name": "Google: Gemma 4 26B A4B  (free)",
+  "vendor": "google",
+  "tier": "Free",
+  "badge": "free",
+  "context": 262144,
+  "max_out": 32768,
+  "in_mod": [
+   "image",
+   "text",
+   "video"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.0,
+  "price_out": 0.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "Gemma 4 26B A4B IT is an instruction-tuned Mixture-of-Experts (MoE) model from Google DeepMind. Despite 25.2B total parameters, only 3.8B activate per token during inference \u2014 delivering near-31B quality at..."
+ },
+ {
+  "id": "google/gemma-4-31b-it:free",
+  "name": "Google: Gemma 4 31B (free)",
+  "vendor": "google",
+  "tier": "Free",
+  "badge": "free",
+  "context": 262144,
+  "max_out": 32768,
+  "in_mod": [
+   "image",
+   "text",
+   "video"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.0,
+  "price_out": 0.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": false,
+  "desc": "Gemma 4 31B Instruct is Google DeepMind's 30.7B dense multimodal model supporting text and image input with text output. Features a 256K token context window, configurable thinking/reasoning mode, native function..."
+ },
+ {
+  "id": "nvidia/nemotron-3-super-120b-a12b:free",
+  "name": "NVIDIA: Nemotron 3 Super (free)",
+  "vendor": "nvidia",
+  "tier": "Free",
+  "badge": "free",
+  "context": 262144,
+  "max_out": 262144,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.0,
+  "price_out": 0.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "NVIDIA Nemotron 3 Super is a 120B-parameter open hybrid MoE model, activating just 12B parameters for maximum compute efficiency and accuracy in complex multi-agent applications. Built on a hybrid Mamba-Transformer..."
+ },
+ {
+  "id": "cohere/north-mini-code:free",
+  "name": "Cohere: North Mini Code (free)",
+  "vendor": "cohere",
+  "tier": "Free",
+  "badge": "free",
+  "context": 256000,
+  "max_out": 64000,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.0,
+  "price_out": 0.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": false,
+  "desc": "North Mini Code is Cohere's first agentic coding model and the debut of its North family. A sparse mixture-of-experts model with 30B total parameters and 3B active, it is optimized..."
+ },
+ {
+  "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+  "name": "NVIDIA: Nemotron 3 Nano Omni (free)",
+  "vendor": "nvidia",
+  "tier": "Free",
+  "badge": "free",
+  "context": 256000,
+  "max_out": 65536,
+  "in_mod": [
+   "text",
+   "audio",
+   "image",
+   "video"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.0,
+  "price_out": 0.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": false,
+  "desc": "NVIDIA Nemotron\u2122 3 Nano Omni is a 30B-A3B open multimodal model designed to function as a perception and context sub-agent in enterprise agent systems. It accepts text, image, video, and..."
+ },
+ {
+  "id": "nvidia/nemotron-3-nano-30b-a3b:free",
+  "name": "NVIDIA: Nemotron 3 Nano 30B A3B (free)",
+  "vendor": "nvidia",
+  "tier": "Free",
+  "badge": "free",
+  "context": 256000,
+  "max_out": 0,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.0,
+  "price_out": 0.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": false,
+  "desc": "NVIDIA Nemotron 3 Nano 30B A3B is a small language MoE model with highest compute efficiency and accuracy for developers to build specialized agentic AI systems. The model is fully..."
+ },
+ {
+  "id": "openai/gpt-oss-20b:free",
+  "name": "OpenAI: gpt-oss-20b (free)",
+  "vendor": "openai",
+  "tier": "Free",
+  "badge": "free",
+  "context": 131072,
+  "max_out": 32768,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.0,
+  "price_out": 0.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "gpt-oss-20b is an open-weight 21B parameter model released by OpenAI under the Apache 2.0 license. It uses a Mixture-of-Experts (MoE) architecture with 3.6B active parameters per forward pass, optimized for..."
+ },
+ {
+  "id": "nvidia/nemotron-3.5-content-safety:free",
+  "name": "NVIDIA: Nemotron 3.5 Content Safety (free)",
+  "vendor": "nvidia",
+  "tier": "Free",
+  "badge": "free",
+  "context": 128000,
+  "max_out": 8192,
+  "in_mod": [
+   "text",
+   "image"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.0,
+  "price_out": 0.0,
+  "price_img": 0.0,
+  "tools": false,
+  "reasoning": true,
+  "structured": false,
+  "desc": "NVIDIA Nemotron 3.5 Content Safety is a compact 4B-parameter multimodal guardrail model from NVIDIA, fine-tuned from Google Gemma-3-4B. It moderates both inputs to and responses from LLMs and VLMs, accepting..."
+ },
+ {
+  "id": "nvidia/nemotron-nano-12b-v2-vl:free",
+  "name": "NVIDIA: Nemotron Nano 12B 2 VL (free)",
+  "vendor": "nvidia",
+  "tier": "Free",
+  "badge": "free",
+  "context": 128000,
+  "max_out": 128000,
+  "in_mod": [
+   "image",
+   "text",
+   "video"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.0,
+  "price_out": 0.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": false,
+  "desc": "NVIDIA Nemotron Nano 2 VL is a 12-billion-parameter open multimodal reasoning model designed for video understanding and document intelligence. It introduces a hybrid Transformer-Mamba architecture, combining transformer-level accuracy\u2026"
+ },
+ {
+  "id": "nvidia/nemotron-nano-9b-v2:free",
+  "name": "NVIDIA: Nemotron Nano 9B V2 (free)",
+  "vendor": "nvidia",
+  "tier": "Free",
+  "badge": "free",
+  "context": 128000,
+  "max_out": 0,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.0,
+  "price_out": 0.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "NVIDIA-Nemotron-Nano-9B-v2 is a large language model (LLM) trained from scratch by NVIDIA, and designed as a unified model for both reasoning and non-reasoning tasks. It responds to user queries and..."
+ },
+ {
+  "id": "anthropic/claude-opus-5",
+  "name": "Claude Opus 5",
+  "vendor": "anthropic",
+  "tier": "Flagship",
+  "badge": "pinned",
+  "context": 1000000,
+  "max_out": 128000,
+  "in_mod": [
+   "text",
+   "image",
+   "file"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 5.0,
+  "price_out": 25.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "Claude Opus 5 is Anthropic\u2019s flagship model for demanding reasoning, coding, and long-horizon agentic work. It is particularly strong at end-to-end software tasks, code review and bug finding, visual analysis..."
+ },
+ {
+  "id": "anthropic/claude-opus-5-fast",
+  "name": "Claude Opus 5 (Fast)",
+  "vendor": "anthropic",
+  "tier": "Flagship",
+  "badge": "",
+  "context": 1000000,
+  "max_out": 128000,
+  "in_mod": [
+   "text",
+   "image",
+   "file"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 10.0,
+  "price_out": 50.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "Fast-mode variant of [Opus 5](/anthropic/claude-opus-5) - identical capabilities with higher output speed at 2x pricing relative to regular Opus 5. Learn more in Anthropic's docs:\u2026"
+ },
+ {
+  "id": "anthropic/claude-fable-5",
+  "name": "Anthropic: Claude Fable 5",
+  "vendor": "anthropic",
+  "tier": "Flagship",
+  "badge": "pinned",
+  "context": 1000000,
+  "max_out": 128000,
+  "in_mod": [
+   "text",
+   "image",
+   "file"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 10.0,
+  "price_out": 50.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "Claude Fable 5 is a Mythos-class model from Anthropic, built for autonomous knowledge work and coding. It supports text, image, and file inputs with text output, with reasoning support and..."
+ },
+ {
+  "id": "anthropic/claude-sonnet-5",
+  "name": "Anthropic: Claude Sonnet 5",
+  "vendor": "anthropic",
+  "tier": "Balanced",
+  "badge": "pinned",
+  "context": 1000000,
+  "max_out": 128000,
+  "in_mod": [
+   "text",
+   "image",
+   "file"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 2.0,
+  "price_out": 10.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "Sonnet 5 is Anthropic's most capable Sonnet-class model, with frontier performance across coding, agents, and professional work. It supports adaptive thinking with selectable reasoning effort levels (low, medium, high, max,..."
+ },
+ {
+  "id": "anthropic/claude-haiku-4.5",
+  "name": "Anthropic: Claude Haiku 4.5",
+  "vendor": "anthropic",
+  "tier": "Fast",
+  "badge": "",
+  "context": 200000,
+  "max_out": 64000,
+  "in_mod": [
+   "text",
+   "image",
+   "file"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 1.0,
+  "price_out": 5.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "Claude Haiku 4.5 is Anthropic\u2019s fastest and most efficient model, delivering near-frontier intelligence at a fraction of the cost and latency of larger Claude models. Matching Claude Sonnet 4\u2019s performance..."
+ },
+ {
+  "id": "anthropic/claude-opus-4.8",
+  "name": "Anthropic: Claude Opus 4.8",
+  "vendor": "anthropic",
+  "tier": "Flagship",
+  "badge": "",
+  "context": 1000000,
+  "max_out": 128000,
+  "in_mod": [
+   "text",
+   "image",
+   "file"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 5.0,
+  "price_out": 25.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "Claude Opus 4.8 is Anthropic's most capable generally available model in the Opus family. It supports text, image, and file inputs with text output, with reasoning support and a 1M-token..."
+ },
+ {
+  "id": "openai/gpt-5.6-sol-pro",
+  "name": "OpenAI: GPT-5.6 Sol Pro",
+  "vendor": "openai",
+  "tier": "Flagship",
+  "badge": "pinned",
+  "context": 1050000,
+  "max_out": 128000,
+  "in_mod": [
+   "file",
+   "image",
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 5.0,
+  "price_out": 30.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "GPT-5.6 Sol Pro is the same underlying model as [GPT-5.6 Sol](https://openrouter.ai/openai/gpt-5.6-sol), served with `reasoning.mode` set to `pro` for higher-quality responses on complex tasks. Learn more in OpenAI's docs:\u2026"
+ },
+ {
+  "id": "openai/gpt-5.6-sol",
+  "name": "OpenAI: GPT-5.6 Sol",
+  "vendor": "openai",
+  "tier": "Flagship",
+  "badge": "",
+  "context": 1050000,
+  "max_out": 128000,
+  "in_mod": [
+   "file",
+   "image",
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 5.0,
+  "price_out": 30.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "GPT-5.6 Sol is the flagship model in OpenAI's GPT-5.6 series. It is suited for complex reasoning, coding, and agentic workflows, and is particularly strong at command-line and multi-step coding tasks..."
+ },
+ {
+  "id": "openai/gpt-5.6-terra-pro",
+  "name": "OpenAI: GPT-5.6 Terra Pro",
+  "vendor": "openai",
+  "tier": "Balanced",
+  "badge": "",
+  "context": 1050000,
+  "max_out": 128000,
+  "in_mod": [
+   "file",
+   "image",
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 1.0,
+  "price_out": 6.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "GPT-5.6 Terra Pro is the same underlying model as [GPT-5.6 Terra](https://openrouter.ai/openai/gpt-5.6-terra), served with `reasoning.mode` set to `pro` for higher-quality responses on complex tasks. Learn more in OpenAI's docs:\u2026"
+ },
+ {
+  "id": "openai/gpt-5.6-terra",
+  "name": "OpenAI: GPT-5.6 Terra",
+  "vendor": "openai",
+  "tier": "Balanced",
+  "badge": "",
+  "context": 1050000,
+  "max_out": 128000,
+  "in_mod": [
+   "file",
+   "image",
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 1.0,
+  "price_out": 6.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "GPT-5.6 Terra is a balanced model in OpenAI's GPT-5.6 series, positioned between the flagship Sol tier and the cost-efficient Luna tier. It is suited for everyday coding, reasoning, and agentic..."
+ },
+ {
+  "id": "openai/gpt-5.6-luna",
+  "name": "OpenAI: GPT-5.6 Luna",
+  "vendor": "openai",
+  "tier": "Fast",
+  "badge": "pinned",
+  "context": 1050000,
+  "max_out": 128000,
+  "in_mod": [
+   "file",
+   "image",
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.09999999999999999,
+  "price_out": 0.6,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "GPT-5.6 Luna is a fast, cost-efficient model in OpenAI's GPT-5.6 series. It is suited for high-volume, latency-sensitive tasks such as chat, classification, and lightweight agentic workflows, providing capable reasoning for..."
+ },
+ {
+  "id": "openai/gpt-5.6-luna-pro",
+  "name": "OpenAI: GPT-5.6 Luna Pro",
+  "vendor": "openai",
+  "tier": "Fast",
+  "badge": "",
+  "context": 1050000,
+  "max_out": 128000,
+  "in_mod": [
+   "file",
+   "image",
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.09999999999999999,
+  "price_out": 0.6,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "GPT-5.6 Luna Pro is the same underlying model as [GPT-5.6 Luna](https://openrouter.ai/openai/gpt-5.6-luna), served with `reasoning.mode` set to `pro` for higher-quality responses on complex tasks. Learn more in OpenAI's docs:\u2026"
+ },
+ {
+  "id": "openai/gpt-5.5-pro",
+  "name": "OpenAI: GPT-5.5 Pro",
+  "vendor": "openai",
+  "tier": "Flagship",
+  "badge": "",
+  "context": 1050000,
+  "max_out": 128000,
+  "in_mod": [
+   "file",
+   "image",
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 30.0,
+  "price_out": 180.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "GPT-5.5 Pro is OpenAI\u2019s high-capability model optimized for deep reasoning and accuracy on complex, high-stakes workloads. It features a 1M+ token context window (922K input, 128K output) with support for..."
+ },
+ {
+  "id": "openai/gpt-5.5",
+  "name": "OpenAI: GPT-5.5",
+  "vendor": "openai",
+  "tier": "Balanced",
+  "badge": "",
+  "context": 1050000,
+  "max_out": 128000,
+  "in_mod": [
+   "file",
+   "image",
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 5.0,
+  "price_out": 30.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "GPT-5.5 is OpenAI\u2019s frontier model designed for complex professional workloads, building on GPT-5.4 with stronger reasoning, higher reliability, and improved token efficiency on hard tasks. It features a 1M+ token..."
+ },
+ {
+  "id": "openai/gpt-5.4-pro",
+  "name": "OpenAI: GPT-5.4 Pro",
+  "vendor": "openai",
+  "tier": "Flagship",
+  "badge": "",
+  "context": 1050000,
+  "max_out": 128000,
+  "in_mod": [
+   "text",
+   "image",
+   "file"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 30.0,
+  "price_out": 180.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "GPT-5.4 Pro is OpenAI's most advanced model, building on GPT-5.4's unified architecture with enhanced reasoning capabilities for complex, high-stakes tasks. It features a 1M+ token context window (922K input, 128K..."
+ },
+ {
+  "id": "openai/gpt-5.4",
+  "name": "OpenAI: GPT-5.4",
+  "vendor": "openai",
+  "tier": "Balanced",
+  "badge": "",
+  "context": 1050000,
+  "max_out": 128000,
+  "in_mod": [
+   "text",
+   "image",
+   "file"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 2.5,
+  "price_out": 15.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "GPT-5.4 is OpenAI\u2019s latest frontier model, unifying the Codex and GPT lines into a single system. It features a 1M+ token context window (922K input, 128K output) with support for..."
+ },
+ {
+  "id": "openai/gpt-5.4-mini",
+  "name": "OpenAI: GPT-5.4 Mini",
+  "vendor": "openai",
+  "tier": "Fast",
+  "badge": "",
+  "context": 400000,
+  "max_out": 128000,
+  "in_mod": [
+   "file",
+   "image",
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.75,
+  "price_out": 4.5,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "GPT-5.4 mini brings the core capabilities of GPT-5.4 to a faster, more efficient model optimized for high-throughput workloads. It supports text and image inputs with strong performance across reasoning, coding,..."
+ },
+ {
+  "id": "openai/gpt-5.4-nano",
+  "name": "OpenAI: GPT-5.4 Nano",
+  "vendor": "openai",
+  "tier": "Fast",
+  "badge": "",
+  "context": 400000,
+  "max_out": 128000,
+  "in_mod": [
+   "file",
+   "image",
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.19999999999999998,
+  "price_out": 1.25,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "GPT-5.4 nano is the most lightweight and cost-efficient variant of the GPT-5.4 family, optimized for speed-critical and high-volume tasks. It supports text and image inputs and is designed for low-latency..."
+ },
+ {
+  "id": "openai/gpt-5.3-codex",
+  "name": "OpenAI: GPT-5.3-Codex",
+  "vendor": "openai",
+  "tier": "Coding",
+  "badge": "",
+  "context": 400000,
+  "max_out": 128000,
+  "in_mod": [
+   "text",
+   "image",
+   "file"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 1.75,
+  "price_out": 14.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "GPT-5.3-Codex is OpenAI\u2019s most advanced agentic coding model, combining the frontier software engineering performance of GPT-5.2-Codex with the broader reasoning and professional knowledge capabilities of GPT-5.2. It achieves\u2026"
+ },
+ {
+  "id": "openai/gpt-5.2-codex",
+  "name": "OpenAI: GPT-5.2-Codex",
+  "vendor": "openai",
+  "tier": "Coding",
+  "badge": "",
+  "context": 400000,
+  "max_out": 128000,
+  "in_mod": [
+   "text",
+   "image"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 1.75,
+  "price_out": 14.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "GPT-5.2-Codex is an upgraded version of GPT-5.1-Codex optimized for software engineering and coding workflows. It is designed for both interactive development sessions and long, independent execution of complex engineering tasks...."
+ },
+ {
+  "id": "openai/o3-pro",
+  "name": "OpenAI: o3 Pro",
+  "vendor": "openai",
+  "tier": "Reasoning",
+  "badge": "",
+  "context": 200000,
+  "max_out": 100000,
+  "in_mod": [
+   "text",
+   "file",
+   "image"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 20.0,
+  "price_out": 80.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "The o-series of models are trained with reinforcement learning to think before they answer and perform complex reasoning. The o3-pro model uses more compute to think harder and provide consistently..."
+ },
+ {
+  "id": "openai/o4-mini-high",
+  "name": "OpenAI: o4 Mini High",
+  "vendor": "openai",
+  "tier": "Reasoning",
+  "badge": "",
+  "context": 200000,
+  "max_out": 100000,
+  "in_mod": [
+   "image",
+   "text",
+   "file"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 1.1,
+  "price_out": 4.4,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "OpenAI o4-mini-high is the same model as [o4-mini](/openai/o4-mini) with reasoning_effort set to high. OpenAI o4-mini is a compact reasoning model in the o-series, optimized for fast, cost-efficient performance while retaining..."
+ },
+ {
+  "id": "google/gemini-3.1-pro-preview",
+  "name": "Google: Gemini 3.1 Pro Preview",
+  "vendor": "google",
+  "tier": "Flagship",
+  "badge": "",
+  "context": 1048576,
+  "max_out": 65536,
+  "in_mod": [
+   "audio",
+   "file",
+   "image",
+   "text",
+   "video"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 2.0,
+  "price_out": 12.0,
+  "price_img": 0.002,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "Gemini 3.1 Pro Preview is Google\u2019s frontier reasoning model, delivering enhanced software engineering performance, improved agentic reliability, and more efficient token usage across complex workflows. Building on the multimodal\u2026"
+ },
+ {
+  "id": "google/gemini-3.6-flash",
+  "name": "Google: Gemini 3.6 Flash",
+  "vendor": "google",
+  "tier": "Fast",
+  "badge": "",
+  "context": 1048576,
+  "max_out": 65536,
+  "in_mod": [
+   "text",
+   "image",
+   "video",
+   "file",
+   "audio"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 1.5,
+  "price_out": 7.5,
+  "price_img": 0.0015,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "Gemini 3.6 Flash is a high-efficiency model from Google for coding, agentic workflows, and web and app development. It is designed to produce polished outputs with fewer unnecessary edits and..."
+ },
+ {
+  "id": "google/gemini-3.5-flash",
+  "name": "Google: Gemini 3.5 Flash",
+  "vendor": "google",
+  "tier": "Fast",
+  "badge": "",
+  "context": 1048576,
+  "max_out": 65536,
+  "in_mod": [
+   "text",
+   "image",
+   "video",
+   "file",
+   "audio"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 1.5,
+  "price_out": 9.0,
+  "price_img": 0.0015,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "Gemini 3.5 Flash is Google's high-efficiency multimodal model, bringing near-Pro level coding and reasoning at Flash-tier cost and speed. It is highly optimized for coding proficiency and parallel agentic execution..."
+ },
+ {
+  "id": "google/gemini-3.5-flash-lite",
+  "name": "Google: Gemini 3.5 Flash Lite",
+  "vendor": "google",
+  "tier": "Fast",
+  "badge": "",
+  "context": 1048576,
+  "max_out": 65536,
+  "in_mod": [
+   "text",
+   "image",
+   "video",
+   "file",
+   "audio"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.3,
+  "price_out": 2.5,
+  "price_img": 0.0003,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "Gemini 3.5 Flash Lite is a high-efficiency model from Google with upgraded agentic capabilities. It is suited for subagents that execute focused tasks within complex, multi-agent workflows."
+ },
+ {
+  "id": "google/gemini-3.1-flash-lite",
+  "name": "Google: Gemini 3.1 Flash Lite",
+  "vendor": "google",
+  "tier": "Fast",
+  "badge": "",
+  "context": 1048576,
+  "max_out": 65536,
+  "in_mod": [
+   "text",
+   "image",
+   "video",
+   "file",
+   "audio"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.25,
+  "price_out": 1.5,
+  "price_img": 0.00025,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "Gemini 3.1 Flash Lite is Google\u2019s GA high-efficiency multimodal model optimized for low-latency, high-volume workloads. It supports text, image, video, audio, and PDF inputs, and is designed for lightweight agentic..."
+ },
+ {
+  "id": "google/gemini-2.5-pro",
+  "name": "Google: Gemini 2.5 Pro",
+  "vendor": "google",
+  "tier": "Balanced",
+  "badge": "",
+  "context": 1048576,
+  "max_out": 65536,
+  "in_mod": [
+   "text",
+   "image",
+   "file",
+   "audio",
+   "video"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 1.25,
+  "price_out": 10.0,
+  "price_img": 0.00125,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "Gemini 2.5 Pro is Google\u2019s state-of-the-art AI model designed for advanced reasoning, coding, mathematics, and scientific tasks. It employs \u201cthinking\u201d capabilities, enabling it to reason through responses with enhanced accuracy..."
+ },
+ {
+  "id": "google/gemini-2.5-flash",
+  "name": "Google: Gemini 2.5 Flash",
+  "vendor": "google",
+  "tier": "Fast",
+  "badge": "",
+  "context": 1048576,
+  "max_out": 65535,
+  "in_mod": [
+   "file",
+   "image",
+   "text",
+   "audio",
+   "video"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.3,
+  "price_out": 2.5,
+  "price_img": 0.0003,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "Gemini 2.5 Flash is Google's state-of-the-art workhorse model, specifically designed for advanced reasoning, coding, mathematics, and scientific tasks. It includes built-in \"thinking\" capabilities, enabling it to provide responses with\u2026"
+ },
+ {
+  "id": "moonshotai/kimi-k3",
+  "name": "MoonshotAI: Kimi K3",
+  "vendor": "moonshotai",
+  "tier": "Flagship",
+  "badge": "pinned",
+  "context": 1048576,
+  "max_out": 0,
+  "in_mod": [
+   "text",
+   "image"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 3.0,
+  "price_out": 15.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "Kimi K3 is a 2.8T parameter open-weight multimodal reasoning model from Moonshot AI. It is suited for complex coding, knowledge work, and long-horizon agentic workflows, and is particularly strong at..."
+ },
+ {
+  "id": "moonshotai/kimi-k2.7-code",
+  "name": "MoonshotAI: Kimi K2.7 Code",
+  "vendor": "moonshotai",
+  "tier": "Coding",
+  "badge": "",
+  "context": 262144,
+  "max_out": 262144,
+  "in_mod": [
+   "text",
+   "image"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.7,
+  "price_out": 3.5,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "MoonshotAI: Kimi K2.7 Code is a coding-focused model in Moonshot AI's Kimi K2 family, built to complete end-to-end programming tasks reliably over long contexts. It uses a native multimodal mixture-of-experts..."
+ },
+ {
+  "id": "moonshotai/kimi-k2.6",
+  "name": "MoonshotAI: Kimi K2.6",
+  "vendor": "moonshotai",
+  "tier": "Balanced",
+  "badge": "",
+  "context": 262144,
+  "max_out": 262144,
+  "in_mod": [
+   "text",
+   "image"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.95,
+  "price_out": 4.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "Kimi K2.6 is Moonshot AI's next-generation multimodal model, designed for long-horizon coding, coding-driven UI/UX generation, and multi-agent orchestration. It handles complex end-to-end coding tasks across Python, Rust, and Go, and..."
+ },
+ {
+  "id": "moonshotai/kimi-k2-thinking",
+  "name": "MoonshotAI: Kimi K2 Thinking",
+  "vendor": "moonshotai",
+  "tier": "Reasoning",
+  "badge": "",
+  "context": 262144,
+  "max_out": 100352,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.6,
+  "price_out": 2.5,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "Kimi K2 Thinking is Moonshot AI\u2019s most advanced open reasoning model to date, extending the K2 series into agentic, long-horizon reasoning. Built on the trillion-parameter Mixture-of-Experts (MoE) architecture introduced in..."
+ },
+ {
+  "id": "deepseek/deepseek-v4-flash-0731",
+  "name": "DeepSeek: DeepSeek V4 Flash 0731",
+  "vendor": "deepseek",
+  "tier": "Fast",
+  "badge": "pinned",
+  "context": 1048576,
+  "max_out": 384000,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.08,
+  "price_out": 0.18,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "DeepSeek V4 Flash 0731 is a sparse mixture-of-experts model from DeepSeek, with 13B active parameters out of 284B total. This re-post-trained revision is suited for coding, reasoning, and agent workflows."
+ },
+ {
+  "id": "deepseek/deepseek-v4-pro",
+  "name": "DeepSeek: DeepSeek V4 Pro",
+  "vendor": "deepseek",
+  "tier": "Flagship",
+  "badge": "",
+  "context": 1048576,
+  "max_out": 393216,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.64432,
+  "price_out": 1.28864,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "DeepSeek V4 Pro is a large-scale Mixture-of-Experts model from DeepSeek with 1.6T total parameters and 49B activated parameters, supporting a 1M-token context window. It is designed for advanced reasoning, coding,..."
+ },
+ {
+  "id": "deepseek/deepseek-v4-flash",
+  "name": "DeepSeek: DeepSeek V4 Flash 0423",
+  "vendor": "deepseek",
+  "tier": "Fast",
+  "badge": "",
+  "context": 1048576,
+  "max_out": 393216,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.14,
+  "price_out": 0.28,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "DeepSeek V4 Flash is an efficiency-optimized Mixture-of-Experts model from DeepSeek with 284B total parameters and 13B activated parameters, supporting a 1M-token context window. It is designed for fast inference and..."
+ },
+ {
+  "id": "deepseek/deepseek-v3.2",
+  "name": "DeepSeek: DeepSeek V3.2",
+  "vendor": "deepseek",
+  "tier": "Balanced",
+  "badge": "",
+  "context": 163840,
+  "max_out": 65536,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.26899999999999996,
+  "price_out": 0.39999999999999997,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "DeepSeek-V3.2 is a large language model designed to harmonize high computational efficiency with strong reasoning and agentic tool-use performance. It introduces DeepSeek Sparse Attention (DSA), a fine-grained sparse attention mechanism..."
+ },
+ {
+  "id": "deepseek/deepseek-r1-0528",
+  "name": "DeepSeek: R1 0528",
+  "vendor": "deepseek",
+  "tier": "Reasoning",
+  "badge": "",
+  "context": 163840,
+  "max_out": 32768,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.5,
+  "price_out": 2.1500000000000004,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "May 28th update to the [original DeepSeek R1](/deepseek/deepseek-r1) Performance on par with [OpenAI o1](/openai/o1), but open-sourced and with fully open reasoning tokens. It's 671B parameters in size, with 37B active..."
+ },
+ {
+  "id": "poolside/laguna-s-2.1",
+  "name": "Poolside: Laguna S 2.1",
+  "vendor": "poolside",
+  "tier": "Coding",
+  "badge": "pinned",
+  "context": 1048576,
+  "max_out": 131072,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.09,
+  "price_out": 0.18,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": false,
+  "desc": "Laguna S 2.1 is the latest coding agent model from [Poolside](<https://poolside.ai/>). Laguna S 2.1 is a 118B total parameter model with 8B active parameters, scoring 70.2% on Terminal-Bench 2.1 and..."
+ },
+ {
+  "id": "poolside/laguna-xs-2.1",
+  "name": "Poolside: Laguna XS 2.1",
+  "vendor": "poolside",
+  "tier": "Coding",
+  "badge": "",
+  "context": 262144,
+  "max_out": 32768,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.06,
+  "price_out": 0.12,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": false,
+  "desc": "Laguna XS 2.1 is the latest coding agent model in the 33B-A3B category from [Poolside](https://poolside.ai/) and a step forward from their Laguna XS.2 model (released in April 2026). It combines..."
+ },
+ {
+  "id": "x-ai/grok-4.5",
+  "name": "SpaceXAI: Grok 4.5",
+  "vendor": "x-ai",
+  "tier": "Flagship",
+  "badge": "",
+  "context": 500000,
+  "max_out": 0,
+  "in_mod": [
+   "text",
+   "image",
+   "file"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 2.0,
+  "price_out": 6.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "Grok 4.5 is SpaceXAI's smartest model with frontier performance on coding, knowledge work, and STEM."
+ },
+ {
+  "id": "x-ai/grok-4.20-multi-agent",
+  "name": "SpaceXAI: Grok 4.20 Multi-Agent",
+  "vendor": "x-ai",
+  "tier": "Agentic",
+  "badge": "",
+  "context": 2000000,
+  "max_out": 0,
+  "in_mod": [
+   "text",
+   "image",
+   "file"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 1.25,
+  "price_out": 2.5,
+  "price_img": 0.0,
+  "tools": false,
+  "reasoning": true,
+  "structured": true,
+  "desc": "Grok 4.20 Multi-Agent is a variant of SpaceXAI\u2019s Grok 4.20 designed for collaborative, agent-based workflows. Multiple agents operate in parallel to conduct deep research, coordinate tool use, and synthesize information..."
+ },
+ {
+  "id": "x-ai/grok-build-0.1",
+  "name": "SpaceXAI: Grok Build 0.1",
+  "vendor": "x-ai",
+  "tier": "Coding",
+  "badge": "",
+  "context": 256000,
+  "max_out": 0,
+  "in_mod": [
+   "text",
+   "image",
+   "file"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 1.0,
+  "price_out": 2.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "Grok Build 0.1 is SpaceXAI\u2019s fast coding model trained specifically for agentic software engineering workflows. It supports text and image inputs with text output, and is optimized for interactive coding..."
+ },
+ {
+  "id": "z-ai/glm-5.2",
+  "name": "Z.ai: GLM 5.2",
+  "vendor": "z-ai",
+  "tier": "Flagship",
+  "badge": "",
+  "context": 1048576,
+  "max_out": 262144,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.76,
+  "price_out": 2.42,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "GLM 5.2 is a large-scale reasoning model from Z.ai. It supports text input and output with a 1M-token context window, and is suited for long-horizon agent workflows, project-level software engineering,..."
+ },
+ {
+  "id": "z-ai/glm-5",
+  "name": "Z.ai: GLM 5",
+  "vendor": "z-ai",
+  "tier": "Balanced",
+  "badge": "",
+  "context": 204800,
+  "max_out": 131072,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.95,
+  "price_out": 2.5500000000000003,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "GLM-5 is Z.ai\u2019s flagship open-source foundation model engineered for complex systems design and long-horizon agent workflows. Built for expert developers, it delivers production-grade performance on large-scale programming tasks,\u2026"
+ },
+ {
+  "id": "z-ai/glm-5-turbo",
+  "name": "Z.ai: GLM 5 Turbo",
+  "vendor": "z-ai",
+  "tier": "Fast",
+  "badge": "",
+  "context": 202752,
+  "max_out": 131072,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 1.2,
+  "price_out": 4.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": false,
+  "desc": "GLM-5 Turbo is a new model from Z.ai designed for fast inference and strong performance in agent-driven environments such as OpenClaw scenarios. It is deeply optimized for real-world agent workflows..."
+ },
+ {
+  "id": "z-ai/glm-4.7",
+  "name": "Z.ai: GLM 4.7",
+  "vendor": "z-ai",
+  "tier": "Balanced",
+  "badge": "",
+  "context": 204800,
+  "max_out": 131072,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.39999999999999997,
+  "price_out": 1.75,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "GLM-4.7 is Z.ai\u2019s latest flagship model, featuring upgrades in two key areas: enhanced programming capabilities and more stable multi-step reasoning/execution. It demonstrates significant improvements in executing complex agent tasks\u2026"
+ },
+ {
+  "id": "qwen/qwen3.8-max",
+  "name": "Qwen: Qwen3.8 Max",
+  "vendor": "qwen",
+  "tier": "Flagship",
+  "badge": "",
+  "context": 1000000,
+  "max_out": 131072,
+  "in_mod": [
+   "text",
+   "image",
+   "video"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 2.0,
+  "price_out": 6.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "Qwen3.8 Max is the flagship model in Alibaba's Qwen3.8 series, the general-availability successor to the Qwen3.8 Max Preview. It is a multimodal reasoning model intended for complex reasoning, visual understanding,..."
+ },
+ {
+  "id": "qwen/qwen3.7-max",
+  "name": "Qwen: Qwen3.7 Max",
+  "vendor": "qwen",
+  "tier": "Flagship",
+  "badge": "",
+  "context": 1000000,
+  "max_out": 131072,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 1.475,
+  "price_out": 4.425,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "Qwen3.7-Max is the flagship model in Alibaba's Qwen3.7 series. It supports text input and output and is designed for agent-centric workloads, with particular strengths in coding, office and productivity tasks,..."
+ },
+ {
+  "id": "qwen/qwen3-coder-next",
+  "name": "Qwen: Qwen3 Coder Next",
+  "vendor": "qwen",
+  "tier": "Coding",
+  "badge": "",
+  "context": 262144,
+  "max_out": 262144,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.12,
+  "price_out": 0.7999999999999999,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": false,
+  "structured": true,
+  "desc": "Qwen3-Coder-Next is an open-weight causal language model optimized for coding agents and local development workflows. It uses a sparse MoE design with 80B total parameters and only 3B activated per..."
+ },
+ {
+  "id": "qwen/qwen3-coder-plus",
+  "name": "Qwen: Qwen3 Coder Plus",
+  "vendor": "qwen",
+  "tier": "Coding",
+  "badge": "",
+  "context": 1000000,
+  "max_out": 65536,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.65,
+  "price_out": 3.25,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": false,
+  "structured": true,
+  "desc": "Qwen3 Coder Plus is Alibaba's proprietary version of the Open Source Qwen3 Coder 480B A35B. It is a powerful coding agent model specializing in autonomous programming via tool calling and..."
+ },
+ {
+  "id": "qwen/qwen3.7-flash",
+  "name": "Qwen: Qwen3.7 Flash",
+  "vendor": "qwen",
+  "tier": "Fast",
+  "badge": "",
+  "context": 1000000,
+  "max_out": 65536,
+  "in_mod": [
+   "text",
+   "image",
+   "video"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.03,
+  "price_out": 0.13,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": false,
+  "desc": "Qwen3.7 Flash is a vision-language reasoning model from Alibaba. It is suited for multimodal agents, visual coding, search, and computer interaction, with strengths in object recognition, spatial understanding, and real-world..."
+ },
+ {
+  "id": "minimax/minimax-m3",
+  "name": "MiniMax: MiniMax M3",
+  "vendor": "minimax",
+  "tier": "Balanced",
+  "badge": "",
+  "context": 1048576,
+  "max_out": 512000,
+  "in_mod": [
+   "text",
+   "image",
+   "video"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.3,
+  "price_out": 1.2,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "MiniMax-M3 is a multimodal foundation model from MiniMax. It supports text, image, and video inputs with text output, a 1M-token context window, and is suited for long-horizon agentic work, coding,..."
+ },
+ {
+  "id": "minimax/minimax-m2.7",
+  "name": "MiniMax: MiniMax M2.7",
+  "vendor": "minimax",
+  "tier": "Balanced",
+  "badge": "",
+  "context": 204800,
+  "max_out": 131072,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.3,
+  "price_out": 1.2,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "MiniMax-M2.7 is a next-generation large language model designed for autonomous, real-world productivity and continuous improvement. Built to actively participate in its own evolution, M2.7 integrates advanced agentic capabilities\u2026"
+ },
+ {
+  "id": "mistralai/mistral-large-2512",
+  "name": "Mistral: Mistral Large 3 2512",
+  "vendor": "mistralai",
+  "tier": "Balanced",
+  "badge": "",
+  "context": 262144,
+  "max_out": 0,
+  "in_mod": [
+   "text",
+   "image",
+   "file"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.5,
+  "price_out": 1.5,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": false,
+  "structured": true,
+  "desc": "Mistral Large 3 2512 is Mistral\u2019s most capable model to date, featuring a sparse mixture-of-experts architecture with 41B active parameters (675B total), and released under the Apache 2.0 license."
+ },
+ {
+  "id": "mistralai/codestral-2508",
+  "name": "Mistral: Codestral 2508",
+  "vendor": "mistralai",
+  "tier": "Coding",
+  "badge": "",
+  "context": 256000,
+  "max_out": 0,
+  "in_mod": [
+   "text",
+   "file"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.3,
+  "price_out": 0.8999999999999999,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": false,
+  "structured": true,
+  "desc": "Mistral's cutting-edge language model for coding released end of July 2025. Codestral specializes in low-latency, high-frequency tasks such as fill-in-the-middle (FIM), code correction and test generation. [Blog\u2026"
+ },
+ {
+  "id": "mistralai/mistral-medium-3.1",
+  "name": "Mistral: Mistral Medium 3.1",
+  "vendor": "mistralai",
+  "tier": "Balanced",
+  "badge": "",
+  "context": 131072,
+  "max_out": 0,
+  "in_mod": [
+   "text",
+   "image",
+   "file"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.39999999999999997,
+  "price_out": 2.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": false,
+  "structured": true,
+  "desc": "Mistral Medium 3.1 is an updated version of Mistral Medium 3, which is a high-performance enterprise-grade language model designed to deliver frontier-level capabilities at significantly reduced operational cost. It balances..."
+ },
+ {
+  "id": "meta-llama/llama-4-maverick",
+  "name": "Meta: Llama 4 Maverick",
+  "vendor": "meta-llama",
+  "tier": "Balanced",
+  "badge": "",
+  "context": 1048576,
+  "max_out": 0,
+  "in_mod": [
+   "text",
+   "image"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.19999999999999998,
+  "price_out": 0.696,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": false,
+  "structured": true,
+  "desc": "Llama 4 Maverick 17B Instruct (128E) is a high-capacity multimodal language model from Meta, built on a mixture-of-experts (MoE) architecture with 128 experts and 17 billion active parameters per forward..."
+ },
+ {
+  "id": "meta-llama/llama-4-scout",
+  "name": "Meta: Llama 4 Scout",
+  "vendor": "meta-llama",
+  "tier": "Fast",
+  "badge": "",
+  "context": 1310720,
+  "max_out": 16384,
+  "in_mod": [
+   "text",
+   "image"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.09999999999999999,
+  "price_out": 0.3,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": false,
+  "structured": true,
+  "desc": "Llama 4 Scout 17B Instruct (16E) is a mixture-of-experts (MoE) language model developed by Meta, activating 17 billion parameters out of a total of 109B. It supports native multimodal input..."
+ },
+ {
+  "id": "cohere/command-a",
+  "name": "Cohere: Command A",
+  "vendor": "cohere",
+  "tier": "Balanced",
+  "badge": "",
+  "context": 256000,
+  "max_out": 8192,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 2.5,
+  "price_out": 10.0,
+  "price_img": 0.0,
+  "tools": false,
+  "reasoning": false,
+  "structured": true,
+  "desc": "Command A is an open-weights 111B parameter model with a 256k context window focused on delivering great performance across agentic, multilingual, and coding use cases. Compared to other leading proprietary..."
+ },
+ {
+  "id": "upstage/solar-pro4",
+  "name": "Upstage: Solar Pro 4",
+  "vendor": "upstage",
+  "tier": "Balanced",
+  "badge": "",
+  "context": 524288,
+  "max_out": 131072,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.03,
+  "price_out": 0.12,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "Solar Pro 4 is a large language model from Upstage. It is suited for agentic workflows, office productivity, document-intensive work, and coding."
+ },
+ {
+  "id": "nousresearch/hermes-3-llama-3.1-405b",
+  "name": "Nous: Hermes 3 405B Instruct",
+  "vendor": "nousresearch",
+  "tier": "Creative",
+  "badge": "",
+  "context": 131072,
+  "max_out": 16384,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 1.0,
+  "price_out": 1.0,
+  "price_img": 0.0,
+  "tools": false,
+  "reasoning": false,
+  "structured": true,
+  "desc": "Hermes 3 is a generalist language model with many improvements over Hermes 2, including advanced agentic capabilities, much better roleplaying, reasoning, multi-turn conversation, long context coherence, and improvements across the..."
+ },
+ {
+  "id": "openrouter/auto",
+  "name": "Auto Router",
+  "vendor": "openrouter",
+  "tier": "Router",
+  "badge": "",
+  "context": 2000000,
+  "max_out": 0,
+  "in_mod": [
+   "text",
+   "image",
+   "audio",
+   "file",
+   "video"
+  ],
+  "out_mod": [
+   "text",
+   "image"
+  ],
+  "price_in": -1.0,
+  "price_out": -1.0,
+  "price_img": -1.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "Your prompt will be processed by a meta-model and routed to one of dozens of models (see below), optimizing for the best possible output. To see which model was used,..."
+ },
+ {
+  "id": "openrouter/auto-beta",
+  "name": "Auto Router (Beta)",
+  "vendor": "openrouter",
+  "tier": "Router",
+  "badge": "",
+  "context": 2000000,
+  "max_out": 0,
+  "in_mod": [
+   "text",
+   "image",
+   "audio",
+   "file",
+   "video"
+  ],
+  "out_mod": [
+   "text",
+   "image"
+  ],
+  "price_in": -1.0,
+  "price_out": -1.0,
+  "price_img": -1.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "Auto Router (Beta) is a task-aware router from OpenRouter. It classifies each request, then routes it the [most popular model](/rankings#task-spend) for that task based on aggregate spend, filtered by your..."
+ },
+ {
+  "id": "openrouter/pareto-code",
+  "name": "Pareto Code Router",
+  "vendor": "openrouter",
+  "tier": "Coding",
+  "badge": "",
+  "context": 2000000,
+  "max_out": 0,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": -1.0,
+  "price_out": -1.0,
+  "price_img": -1.0,
+  "tools": false,
+  "reasoning": false,
+  "structured": false,
+  "desc": "The Pareto Router maintains a tiered shortlist of strong coding models, ranked by [Artificial Analysis](https://artificialanalysis.ai/) coding percentiles. Set min_coding_score between 0 and 1 on the [pareto-router\u2026"
+ },
+ {
+  "id": "openrouter/fusion",
+  "name": "OpenRouter: Fusion",
+  "vendor": "openrouter",
+  "tier": "Agentic",
+  "badge": "",
+  "context": 1000000,
+  "max_out": 0,
+  "in_mod": [
+   "text"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": -1.0,
+  "price_out": -1.0,
+  "price_img": -1.0,
+  "tools": false,
+  "reasoning": false,
+  "structured": false,
+  "desc": "Fusion turns your prompt into a small multi-model deliberation. A panel of expert models (see below) analyzes your prompt in parallel with web search and web fetch enabled, then a..."
+ },
+ {
+  "id": "google/gemini-3-pro-image",
+  "name": "Google: Nano Banana Pro (Gemini 3 Pro Image)",
+  "vendor": "google",
+  "tier": "Image",
+  "badge": "",
+  "context": 131072,
+  "max_out": 32768,
+  "in_mod": [
+   "image",
+   "text"
+  ],
+  "out_mod": [
+   "image",
+   "text"
+  ],
+  "price_in": 2.0,
+  "price_out": 12.0,
+  "price_img": 0.002,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "Nano Banana Pro is Google\u2019s most advanced image-generation and editing model, built on Gemini 3 Pro. It extends the original Nano Banana with significantly improved multimodal reasoning, real-world grounding, and..."
+ },
+ {
+  "id": "google/gemini-3.1-flash-image",
+  "name": "Google: Nano Banana 2 (Gemini 3.1 Flash Image)",
+  "vendor": "google",
+  "tier": "Image",
+  "badge": "",
+  "context": 131072,
+  "max_out": 32768,
+  "in_mod": [
+   "image",
+   "text"
+  ],
+  "out_mod": [
+   "image",
+   "text"
+  ],
+  "price_in": 0.5,
+  "price_out": 3.0,
+  "price_img": 0.0,
+  "tools": false,
+  "reasoning": true,
+  "structured": true,
+  "desc": "Gemini 3.1 Flash Image, a.k.a. \"Nano Banana 2,\" is Google\u2019s latest state of the art image generation and editing model, delivering Pro-level visual quality at Flash speed. It combines advanced..."
+ },
+ {
+  "id": "google/gemini-3.1-flash-lite-image",
+  "name": "Google: Nano Banana 2 Lite (Gemini 3.1 Flash Lite Image)",
+  "vendor": "google",
+  "tier": "Image",
+  "badge": "",
+  "context": 65536,
+  "max_out": 65536,
+  "in_mod": [
+   "image",
+   "text"
+  ],
+  "out_mod": [
+   "image",
+   "text"
+  ],
+  "price_in": 0.25,
+  "price_out": 1.5,
+  "price_img": 0.0,
+  "tools": false,
+  "reasoning": true,
+  "structured": false,
+  "desc": "Nano Banana 2 Lite (Gemini 3.1 Flash Lite Image) is Google's fastest, most cost-efficient Gemini image model, built for high-velocity developer pipelines and rapid-fire visual exploration. It delivers text-to-image generation..."
+ },
+ {
+  "id": "google/gemini-2.5-flash-image",
+  "name": "Google: Nano Banana (Gemini 2.5 Flash Image)",
+  "vendor": "google",
+  "tier": "Image",
+  "badge": "",
+  "context": 32768,
+  "max_out": 8192,
+  "in_mod": [
+   "image",
+   "text"
+  ],
+  "out_mod": [
+   "image",
+   "text"
+  ],
+  "price_in": 0.3,
+  "price_out": 2.5,
+  "price_img": 0.0003,
+  "tools": false,
+  "reasoning": false,
+  "structured": true,
+  "desc": "Gemini 2.5 Flash Image, a.k.a. \"Nano Banana,\" is now generally available. It is a state of the art image generation model with contextual understanding. It is capable of image generation,..."
+ },
+ {
+  "id": "openai/gpt-5.4-image-2",
+  "name": "OpenAI: GPT-5.4 Image 2",
+  "vendor": "openai",
+  "tier": "Image",
+  "badge": "",
+  "context": 272000,
+  "max_out": 128000,
+  "in_mod": [
+   "image",
+   "text",
+   "file"
+  ],
+  "out_mod": [
+   "image",
+   "text"
+  ],
+  "price_in": 8.0,
+  "price_out": 15.0,
+  "price_img": 0.0,
+  "tools": false,
+  "reasoning": true,
+  "structured": true,
+  "desc": "[GPT-5.4](https://openrouter.ai/openai/gpt-5.4) Image 2 combines OpenAI's GPT-5.4 model with state-of-the-art image generation capabilities from GPT Image 2. It enables rich multimodal workflows, allowing users to seamlessly move\u2026"
+ },
+ {
+  "id": "openai/gpt-5-image",
+  "name": "OpenAI: GPT-5 Image",
+  "vendor": "openai",
+  "tier": "Image",
+  "badge": "",
+  "context": 400000,
+  "max_out": 128000,
+  "in_mod": [
+   "image",
+   "text",
+   "file"
+  ],
+  "out_mod": [
+   "image",
+   "text"
+  ],
+  "price_in": 10.0,
+  "price_out": 10.0,
+  "price_img": 0.0,
+  "tools": false,
+  "reasoning": true,
+  "structured": true,
+  "desc": "[GPT-5](https://openrouter.ai/openai/gpt-5) Image combines OpenAI's GPT-5 model with state-of-the-art image generation capabilities. It offers major improvements in reasoning, code quality, and user experience while incorporating GPT\u2026"
+ },
+ {
+  "id": "openai/gpt-5-image-mini",
+  "name": "OpenAI: GPT-5 Image Mini",
+  "vendor": "openai",
+  "tier": "Image",
+  "badge": "",
+  "context": 400000,
+  "max_out": 128000,
+  "in_mod": [
+   "file",
+   "image",
+   "text"
+  ],
+  "out_mod": [
+   "image",
+   "text"
+  ],
+  "price_in": 2.5,
+  "price_out": 2.0,
+  "price_img": 0.0,
+  "tools": false,
+  "reasoning": true,
+  "structured": true,
+  "desc": "GPT-5 Image Mini combines OpenAI's advanced language capabilities, powered by [GPT-5 Mini](https://openrouter.ai/openai/gpt-5-mini), with GPT Image 1 Mini for efficient image generation. This natively multimodal model features superior\u2026"
+ },
+ {
+  "id": "openai/gpt-audio",
+  "name": "OpenAI: GPT Audio",
+  "vendor": "openai",
+  "tier": "Audio",
+  "badge": "",
+  "context": 128000,
+  "max_out": 16384,
+  "in_mod": [
+   "text",
+   "audio"
+  ],
+  "out_mod": [
+   "text",
+   "audio"
+  ],
+  "price_in": 2.5,
+  "price_out": 10.0,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": false,
+  "structured": true,
+  "desc": "The gpt-audio model is OpenAI's first generally available audio model. The new snapshot features an upgraded decoder for more natural sounding voices and maintains better voice consistency. Audio is priced..."
+ },
+ {
+  "id": "openai/gpt-audio-mini",
+  "name": "OpenAI: GPT Audio Mini",
+  "vendor": "openai",
+  "tier": "Audio",
+  "badge": "",
+  "context": 128000,
+  "max_out": 16384,
+  "in_mod": [
+   "text",
+   "audio"
+  ],
+  "out_mod": [
+   "text",
+   "audio"
+  ],
+  "price_in": 0.6,
+  "price_out": 2.4,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": false,
+  "structured": true,
+  "desc": "A cost-efficient version of GPT Audio. The new snapshot features an upgraded decoder for more natural sounding voices and maintains better voice consistency. Input is priced at $0.60 per million..."
+ },
+ {
+  "id": "meta/muse-spark-1.2",
+  "name": "Meta: Muse Spark 1.2",
+  "vendor": "meta",
+  "tier": "Audio",
+  "badge": "",
+  "context": 1048576,
+  "max_out": 0,
+  "in_mod": [
+   "text",
+   "image",
+   "video",
+   "file",
+   "audio"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 1.25,
+  "price_out": 4.25,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": true,
+  "structured": true,
+  "desc": "Muse Spark 1.2 is a reasoning model from Meta, designed for complex agentic tasks. It accepts text, images, video, audio, and PDF documents, returns text, and offers a 1M-token context..."
+ },
+ {
+  "id": "mistralai/voxtral-small-24b-2507",
+  "name": "Mistral: Voxtral Small 24B 2507",
+  "vendor": "mistralai",
+  "tier": "Audio",
+  "badge": "",
+  "context": 32000,
+  "max_out": 0,
+  "in_mod": [
+   "text",
+   "audio",
+   "file"
+  ],
+  "out_mod": [
+   "text"
+  ],
+  "price_in": 0.09999999999999999,
+  "price_out": 0.3,
+  "price_img": 0.0,
+  "tools": true,
+  "reasoning": false,
+  "structured": true,
+  "desc": "Voxtral Small is an enhancement of Mistral Small 3, incorporating state-of-the-art audio input capabilities while retaining best-in-class text performance. It excels at speech transcription, translation and audio understanding. Input\u2026"
+ }
+]

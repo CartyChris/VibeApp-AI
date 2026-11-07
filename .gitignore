@@ -1,0 +1,11 @@
+# Build output
+src-tauri/target/
+node_modules/
+*.dmg
+
+# macOS
+.DS_Store
+
+# Local secrets, never committed
+.env
+.env.*

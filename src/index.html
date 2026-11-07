@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VibeApp AI</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<!-- macOS titlebar drag strip; traffic lights live in the inset -->
+<header id="titlebar" data-tauri-drag-region>
+  <div class="tb-left" data-tauri-drag-region>
+    <span class="brand" data-tauri-drag-region>
+      <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" class="brand-mark">
+        <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#7c6cff"/><stop offset=".55" stop-color="#c264e8"/>
+          <stop offset="1" stop-color="#ff8a60"/></linearGradient></defs>
+        <path d="M2 13c3.2 0 3.6-7 6.6-7s3.2 11 6.4 11 2.8-6 7-6"
+              fill="none" stroke="url(#bg)" stroke-width="2.1" stroke-linecap="round"/>
+      </svg>
+      VibeApp&nbsp;AI
+    </span>
+    <button class="tb-chip" id="projectChip" title="Switch project">
+      <span id="projectEmoji"></span><span id="projectName">No project</span>
+      <svg viewBox="0 0 12 12" width="10" height="10"><path d="M2 4.5 6 8.5 10 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button>
+    <button class="tb-ghost" id="newChatBtn" title="Start a fresh conversation (keeps your files)">Clear context</button>
+    <button class="tb-icon" id="paletteBtn" title="Search everything  ⌘⇧P" aria-label="Open the command palette">
+      <svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><path d="M8.8 3a5.8 5.8 0 1 0 0 11.6 5.8 5.8 0 0 0 0-11.6zM13 13l4 4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+    </button>
+    <span class="tb-sep"></span>
+    <button class="tb-icon" id="undoBtn" title="Nothing to undo" disabled aria-label="Undo">
+      <svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><path d="M7 5 3 9l4 4M3.4 9H12a4.5 4.5 0 0 1 0 9h-2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="tb-icon" id="redoBtn" title="Nothing to redo" disabled aria-label="Redo">
+      <svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><path d="M13 5l4 4-4 4M16.6 9H8a4.5 4.5 0 0 0 0 9h2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+  <div class="tb-right">
+    <button class="tb-chip warnchip" id="sandboxBadge" hidden
+            title="The preview is showing a sandboxed copy. Your files are untouched.">
+      Sandbox preview
+    </button>
+    <select id="applyMode" class="tb-select" title="How the AI's work reaches your files">
+      <option value="live">Apply live</option>
+      <option value="review">Review first</option>
+      <option value="sandbox">Sandbox it</option>
+    </select>
+    <button class="tb-ghost" id="freeModeBtn" title="Restrict every model picker to $0 models">
+      <span class="dot-free"></span> Free Mode
+    </button>
+    <button class="cost-pill" id="costPill" title="Estimated spend this session — click for the full ledger">$0.00</button>
+  </div>
+</header>
+
+<div id="app">
+
+  <!-- ------------------------------------------------------------------ -->
+  <!-- Left: conversation                                                  -->
+  <!-- ------------------------------------------------------------------ -->
+  <section id="chatPane">
+    <div id="messages" role="log" aria-live="polite" aria-label="Conversation"></div>
+
+    <button id="jumpLatest" class="jump-latest" hidden title="Jump to the newest message">
+      Jump to latest
+      <svg viewBox="0 0 20 20" width="12" height="12" aria-hidden="true"><path d="M10 4v12M5 11l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div id="composerWrap">
+      <div id="queueStrip" hidden></div>
+      <div id="attachStrip" hidden></div>
+      <div id="pickedStrip" hidden>
+        <span class="picked-label">Editing</span>
+        <code id="pickedSelector"></code>
+        <button id="pickedClear" aria-label="Stop targeting this element">✕</button>
+      </div>
+      <div id="composer">
+        <textarea id="prompt" rows="1" placeholder="Describe what you want to build…"
+                  aria-label="Describe what you want to build"></textarea>
+        <div id="composerBar">
+          <button class="model-btn" id="modelBtn" title="Choose a model">
+            <span id="modelLabel">Claude Opus 5</span>
+            <span class="effort" id="effortLabel">Medium</span>
+          </button>
+          <button class="ctx-meter" id="ctxMeter" hidden></button>
+          <div class="spacer"></div>
+          <button class="icon-btn" id="attachBtn" title="Attach a screenshot or image" aria-label="Attach image">
+            <svg viewBox="0 0 20 20" width="17" height="17"><rect x="2.5" y="4" width="15" height="12" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="7" cy="8.5" r="1.4" fill="currentColor"/><path d="M3.5 14.5 7.5 11l3 2.5L14 10l3 3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          </button>
+          <button class="icon-btn" id="micBtn" title="Dictate" aria-label="Dictate">
+            <svg viewBox="0 0 20 20" width="17" height="17"><rect x="7.5" y="2.5" width="5" height="9" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M4.5 9.5a5.5 5.5 0 0 0 11 0M10 15v2.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <button class="send-btn" id="sendBtn" title="Send  ⌘↩" aria-label="Send">
+            <svg viewBox="0 0 20 20" width="16" height="16"><path d="M10 16V4M5 9l5-5 5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------------------ -->
+  <!-- Right: rail + panels                                                -->
+  <!-- ------------------------------------------------------------------ -->
+  <section id="workPane">
+    <nav id="rail" role="tablist" aria-label="Panels"></nav>
+    <div id="panelHost"></div>
+  </section>
+</div>
+
+<!-- Model picker -->
+<div class="sheet-backdrop" id="modelSheet" hidden>
+  <div class="sheet" role="dialog" aria-label="Choose a model">
+    <header>
+      <input id="modelSearch" type="search" placeholder="Search 400+ models…" autocomplete="off">
+      <button class="x" data-close aria-label="Close">✕</button>
+    </header>
+    <div class="sheet-filters" id="modelFilters"></div>
+    <div class="sheet-body" id="modelList"></div>
+    <footer class="sheet-foot column">
+      <div class="foot-row">
+        <div class="effort-row">
+          <span>Reasoning</span>
+          <div class="segmented" id="effortSeg"></div>
+        </div>
+        <button class="link-btn" id="refreshModels">Refresh catalog</button>
+      </div>
+      <div class="foot-row">
+        <div class="effort-row">
+          <span>Max output</span>
+          <div class="segmented" id="maxSeg"></div>
+          <input id="maxCustom" class="field" type="number" min="256" step="256"
+                 placeholder="tokens" hidden aria-label="Custom output token limit">
+          <span class="muted" id="maxHint"></span>
+        </div>
+      </div>
+      <div class="foot-row">
+        <div class="effort-row">
+          <span>If it runs out</span>
+          <div class="segmented" id="handoffSeg"></div>
+          <span class="muted" id="handoffHint"></span>
+        </div>
+      </div>
+      <div class="foot-row" id="handoffPick" hidden>
+        <div class="effort-row">
+          <span>Hand off to</span>
+          <select id="handoffModel" class="field wide"
+                  aria-label="Which model finishes a reply this one cannot"></select>
+        </div>
+      </div>
+      <div class="foot-row">
+        <div class="effort-row">
+          <span>Plan with</span>
+          <select id="plannerModel" class="field wide"
+                  aria-label="Reasoning model that plans before the build model executes"></select>
+          <span class="muted" id="plannerHint"></span>
+        </div>
+      </div>
+      <div class="foot-row">
+        <div class="effort-row">
+          <span>Check &amp; repair</span>
+          <div class="segmented" id="verifySeg"></div>
+          <span class="muted" id="verifyHint"></span>
+        </div>
+      </div>
+      <div class="foot-row">
+        <div class="effort-row">
+          <span>If the preview fails</span>
+          <div class="segmented" id="healSeg"></div>
+          <span class="muted" id="healHint"></span>
+        </div>
+      </div>
+      <div class="foot-row">
+        <div class="effort-row">
+          <span>Warn per request</span>
+          <input id="warnInput" class="field" type="number" min="0" step="0.05"
+                 placeholder="none" aria-label="Ask before sending a request above this input cost, in US dollars">
+          <span class="muted" id="warnHint"></span>
+        </div>
+      </div>
+      <div class="foot-row">
+        <div class="effort-row">
+          <span>Spend limit</span>
+          <input id="budgetInput" class="field" type="number" min="0" step="1"
+                 placeholder="none" aria-label="Session spend limit in US dollars">
+          <span class="muted" id="budgetHint"></span>
+        </div>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<!-- Hand the unfinished reply to another model -->
+<div class="sheet-backdrop" id="handoffSheet" hidden>
+  <div class="sheet narrow" role="dialog" aria-label="Continue with another model">
+    <header>
+      <strong>Continue with another model</strong>
+      <button class="x" data-close aria-label="Close">✕</button>
+    </header>
+    <p class="sheet-note" id="handoffNote"></p>
+    <div class="sheet-body" id="handoffList"></div>
+    <footer class="sheet-foot">
+      <button class="link-btn" id="handoffBrowse">Browse all models…</button>
+    </footer>
+  </div>
+</div>
+
+<!-- Project switcher -->
+<div class="sheet-backdrop" id="projectSheet" hidden>
+  <div class="sheet narrow" role="dialog" aria-label="Projects">
+    <header><strong>Projects</strong><button class="x" data-close aria-label="Close">✕</button></header>
+    <div class="sheet-body" id="projectList"></div>
+    <footer class="sheet-foot">
+      <button class="primary" id="newProjectBtn">New project</button>
+      <button class="ghost" id="importProjectBtn">Import HTML / zip / folder…</button>
+    </footer>
+  </div>
+</div>
+
+<div id="toasts" aria-live="polite"></div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
