@@ -3,8 +3,10 @@
 
 pub mod a11y;
 pub mod adapt;
+pub mod endpoints;
 pub mod engines;
 pub mod batch;
+pub mod builtin_tools;
 #[cfg(test)]
 mod bench;
 pub mod agent;
@@ -14,6 +16,7 @@ pub mod catalog;
 pub mod db;
 pub mod fixer;
 pub mod i18n;
+pub mod library;
 pub mod local;
 pub mod mcp;
 pub mod plugins;
@@ -26,6 +29,7 @@ pub mod pwa;
 pub mod quality;
 pub mod scaffold;
 pub mod secrets;
+pub mod setup;
 pub mod providers;
 pub mod skills;
 pub mod suggest;
@@ -208,7 +212,7 @@ fn project_create(name: String, kind: String, emoji: String) -> R<project::Proje
     if engines::is_engine_kind(&kind) {
         let tools = engines::detect_cached();
         e(engines::scaffold(&kind, &p.name, &project::files_dir(&p.id), &tools))?;
-        if kind != "game3d" {
+        if ["godot", "unity", "unreal", "vork"].contains(&kind.as_str()) {
             p.device_id = "web-laptop".into();
         }
         p.entry = if kind == "unity" || kind == "unreal" { String::new() } else { "index.html".into() };
@@ -555,6 +559,8 @@ async fn run_tool_calls(
     app: &tauri::AppHandle,
     deltas: &batch::Deltas,
     sid: &str,
+    pid: &str,
+    http: &reqwest::Client,
     calls: &[agent::ToolCall],
     cancel: &Arc<AtomicBool>,
     budget: usize,
@@ -638,6 +644,13 @@ async fn run_tool_calls(
             }
         }
         deltas.send("status", format!("Calling {label}…"));
+        if server.transport == "builtin" {
+            match builtin_tools::call(http, &c.name, &args, &project::live_dir(pid)).await {
+                Ok(text) => report(mcp::clip(&text, per_call)),
+                Err(e) => report(format!("The call failed: {}", mcp::clip(&e.to_string(), 2_000))),
+            }
+            continue;
+        }
         match mcp::call_tool(&server, &c.name, args).await {
             Ok((text, false)) => report(mcp::clip(&text, per_call)),
             Ok((text, true)) => report(format!("The tool reported an error:\n{}", mcp::clip(&text, per_call))),
@@ -1304,7 +1317,7 @@ async fn chat_send(
                         && !cancel.load(Ordering::Relaxed)
                     {
                         tool_rounds += 1;
-                        let reports = run_tool_calls(&app2, &deltas, &sid, &parsed.tools, &cancel, tool_budget).await;
+                        let reports = run_tool_calls(&app2, &deltas, &sid, &pid, &http, &parsed.tools, &cancel, tool_budget).await;
                         let mut reply = mcp::results_reply(&reports, mcp::MAX_TOOL_ROUNDS - tool_rounds);
                         if !advisor && !parsed.reads.is_empty() && retrievals < agent::MAX_RETRIEVALS {
                             retrievals += 1;
@@ -2418,6 +2431,198 @@ fn skill_import_local(paths: Vec<String>) -> R<Vec<skills::Draft>> {
 }
 
 // ---------------------------------------------------------------------------
+// Providers the user adds (any OpenAI-compatible endpoint)
+// ---------------------------------------------------------------------------
+
+#[derive(Serialize)]
+struct EndpointView {
+    endpoint: endpoints::Endpoint,
+    has_key: bool,
+}
+
+#[tauri::command]
+fn endpoints_list() -> Vec<EndpointView> {
+    endpoints::list().into_iter().map(|e| EndpointView { has_key: vault::get_key(&e.route()).is_some(), endpoint: e }).collect()
+}
+
+#[tauri::command]
+fn endpoint_presets() -> Vec<endpoints::Endpoint> {
+    endpoints::presets()
+}
+
+/// Save an endpoint, and its key (to the Keychain) when one is typed.
+#[tauri::command]
+fn endpoint_save(endpoint: endpoints::Endpoint, key: String) -> R<endpoints::Endpoint> {
+    let saved = e(endpoints::save(endpoint))?;
+    if !key.trim().is_empty() {
+        if saved.is_local() {
+            return Err("A localhost endpoint never gets a key.".into());
+        }
+        e(vault::set_key(&saved.route(), key.trim()))?;
+    }
+    Ok(saved)
+}
+
+#[tauri::command]
+fn endpoint_remove(id: String) -> R<()> {
+    e(endpoints::remove(&id))
+}
+
+/// The models an endpoint serves, from its `/models`.
+#[tauri::command]
+async fn endpoint_models(s: State<'_, AppState>, id: String) -> R<Vec<String>> {
+    let ep = endpoints::get(&id).ok_or("That provider no longer exists.")?;
+    let mut rq = s.http.get(format!("{}/models", ep.base_url)).timeout(std::time::Duration::from_secs(20));
+    if !ep.is_local() {
+        if let Some(k) = vault::get_key(&ep.route()) {
+            rq = rq.bearer_auth(k);
+        }
+    }
+    let r = rq.send().await.map_err(|e| format!("Could not reach {}: {e}", ep.name))?;
+    if !r.status().is_success() {
+        return Err(format!("{} answered {} — check the key.", ep.name, r.status()));
+    }
+    let ids = endpoints::parse_models(&r.text().await.map_err(|e| e.to_string())?);
+    if ids.is_empty() {
+        return Err(format!("{} listed no models. You can still add a model by its exact id.", ep.name));
+    }
+    Ok(ids)
+}
+
+// ---------------------------------------------------------------------------
+// First-run Setup
+// ---------------------------------------------------------------------------
+
+#[derive(Serialize)]
+struct SetupState {
+    items: Vec<setup::Item>,
+    brew: bool,
+    free_gb: Option<f32>,
+}
+
+#[tauri::command]
+fn setup_state() -> SetupState {
+    SetupState { items: setup::items(), brew: setup::brew().is_some(), free_gb: setup::free_gb() }
+}
+
+/// Install one catalogue item through Homebrew. The page names an id; the
+/// package and arguments come from the catalogue.
+#[tauri::command]
+async fn setup_install(id: String) -> R<setup::InstallResult> {
+    e(setup::install(&id).await)
+}
+
+/// Add the MCP servers that need nothing installed, and make sure the
+/// built-in tools are on. Returns the ids added.
+#[tauri::command]
+fn setup_add_no_install_tools() -> R<Vec<String>> {
+    let have: Vec<String> = mcp::list().into_iter().map(|s| s.id).collect();
+    let mut added = Vec::new();
+    for p in mcp::presets().into_iter().filter(|p| p.group == "No install needed") {
+        if have.contains(&p.server.id) {
+            continue;
+        }
+        let s = e(mcp::save(p.server, &HashMap::new()))?;
+        added.push(s.id);
+    }
+    e(mcp::update(builtin_tools::SERVER_ID, |s| s.enabled = true))?;
+    Ok(added)
+}
+
+// ---------------------------------------------------------------------------
+// Asset Vault and Feature Kits
+// ---------------------------------------------------------------------------
+
+#[tauri::command]
+fn vault_assets() -> Vec<library::Asset> {
+    library::assets()
+}
+
+#[tauri::command]
+fn vault_add_paths(paths: Vec<String>, name: String, tags: Vec<String>, credit: String) -> R<library::Asset> {
+    let srcs: Vec<PathBuf> = paths.iter().map(PathBuf::from).collect();
+    e(library::add_asset(&name, &srcs, &tags, &credit, "this Mac"))
+}
+
+#[tauri::command]
+fn vault_add_from_project(id: String, paths: Vec<String>, name: String, tags: Vec<String>, credit: String) -> R<library::Asset> {
+    e(library::add_asset_from_project(&id, &paths, &name, &tags, &credit))
+}
+
+/// Copy an asset into the project. Takes an undo point first, like a turn.
+#[tauri::command]
+fn vault_use(asset: String, id: String) -> R<Vec<String>> {
+    refuse_if_unapplied(&id, "adding an asset")?;
+    let name = library::asset(&asset).map(|a| a.name).unwrap_or_default();
+    let _ = staging::mark(&id, &format!("Add {name} from the Asset Vault"));
+    e(library::use_asset(&asset, &id))
+}
+
+#[tauri::command]
+fn vault_preview(asset: String) -> Option<String> {
+    library::asset_preview(&asset)
+}
+
+#[tauri::command]
+fn vault_reveal(asset: String, path: String) -> R<()> {
+    let p = e(library::asset_file(&asset, &path))?;
+    e(std::process::Command::new("open").arg("-R").arg(&p).spawn().map(|_| ()))
+}
+
+#[tauri::command]
+fn vault_update(asset: String, name: String, tags: Vec<String>, credit: String) -> R<library::Asset> {
+    e(library::update_asset(&asset, &name, &tags, &credit))
+}
+
+#[tauri::command]
+fn vault_remove(asset: String) -> R<()> {
+    e(library::remove_asset(&asset))
+}
+
+#[tauri::command]
+fn kits_list() -> Vec<library::Kit> {
+    library::kits()
+}
+
+#[tauri::command]
+fn kit_create(
+    id: String,
+    name: String,
+    description: String,
+    notes: String,
+    tags: Vec<String>,
+    paths: Vec<String>,
+    snippets: Vec<library::Snippet>,
+) -> R<library::Kit> {
+    e(library::create_kit(&id, &name, &description, &notes, &tags, &paths, &snippets))
+}
+
+#[tauri::command]
+fn kit_file(kit: String, path: String) -> R<String> {
+    e(library::kit_file(&kit, &path))
+}
+
+/// Copy a kit's files into the project (never over a file) and return the
+/// message that asks the model to wire it in.
+#[tauri::command]
+fn kit_use(kit: String, id: String) -> R<library::KitUse> {
+    refuse_if_unapplied(&id, "adding a kit")?;
+    let name = library::kit(&kit).map(|k| k.name).unwrap_or_default();
+    let _ = staging::mark(&id, &format!("Add the {name} kit"));
+    e(library::use_kit(&kit, &id))
+}
+
+#[tauri::command]
+fn kit_update(kit: String, name: String, description: String, notes: String, tags: Vec<String>) -> R<library::Kit> {
+    e(library::update_kit(&kit, &name, &description, &notes, &tags))
+}
+
+#[tauri::command]
+fn kit_remove(kit: String) -> R<()> {
+    e(library::remove_kit(&kit))
+}
+
+// ---------------------------------------------------------------------------
 // Game engines and 3D tools
 // ---------------------------------------------------------------------------
 
@@ -2630,10 +2835,14 @@ async fn mcp_stop(id: String) {
 
 /// A call the user makes by hand from the panel, to see what a tool returns.
 #[tauri::command]
-async fn mcp_call(id: String, tool: String, args: String) -> R<String> {
+async fn mcp_call(s0: State<'_, AppState>, id: String, tool: String, args: String, project: Option<String>) -> R<String> {
     let s = mcp::get(&id).ok_or("That server no longer exists.")?;
     let call = agent::ToolCall { server: id, name: tool.clone(), args };
     let v = call.args_json()?;
+    if s.transport == "builtin" {
+        let pid = project.filter(|p| !p.is_empty()).ok_or("Open a project first: built-in tools work on it.")?;
+        return e(builtin_tools::call(&s0.http, &tool, &v, &project::live_dir(&pid)).await);
+    }
     let (text, is_err) = e(mcp::call_tool(&s, &tool, v).await)?;
     Ok(if is_err { format!("The tool reported an error:\n{text}") } else { text })
 }
@@ -3646,6 +3855,10 @@ pub fn run() {
             engines_detect, engine_actions, engine_run, engine_repair_prompt, project_import_folder,
             plugins_list, plugin_create, plugin_set_enabled, plugin_remove, plugin_install_dir, plugin_install_url,
             plugin_commands, plugin_themes, skills_scan_local, skill_import_local,
+            vault_assets, vault_add_paths, vault_add_from_project, vault_use, vault_preview, vault_reveal,
+            vault_update, vault_remove, kits_list, kit_create, kit_file, kit_use, kit_update, kit_remove,
+            endpoints_list, endpoint_presets, endpoint_save, endpoint_remove, endpoint_models,
+            setup_state, setup_install, setup_add_no_install_tools,
         ])
         .run(tauri::generate_context!())
         .expect("error while running VibeApp AI");

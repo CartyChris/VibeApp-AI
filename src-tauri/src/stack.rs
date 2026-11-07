@@ -75,7 +75,7 @@ pub fn options() -> Vec<StackOption> {
         opt!("python", "language", "Python", "Fastest to write; strongest for data and AI.",
              targets: ["desktop","web","server","cli","android"], langs: [],
              conflicts: [], tool: "python3", common: true),
-        opt!("rust", "language", "Rust", "Fast and memory-safe; tiny binaries.",
+        opt!("rust", "language", "Rust", "Fast and memory-safe; tiny binaries. On the web through WebAssembly. (On iOS and Android it is a library under a Swift or Kotlin UI, so it is not offered as their primary language.)",
              targets: ["desktop","web","server","cli"], langs: [],
              conflicts: [], tool: "cargo", common: false),
         opt!("go", "language", "Go", "Simple concurrency; single static binary.",
@@ -85,6 +85,16 @@ pub fn options() -> Vec<StackOption> {
              targets: ["ios","desktop"], langs: [], conflicts: [], tool: "swift", common: false),
         opt!("kotlin", "language", "Kotlin", "Native Android.",
              targets: ["android"], langs: [], conflicts: [], tool: "", common: false),
+        opt!("zig", "language", "Zig", "Small, fast, no hidden allocations; cross-compiles anywhere and to WebAssembly with no extra tools. (On phones it is a library under a native UI.)",
+             targets: ["desktop","web","server","cli"], langs: [], conflicts: [], tool: "zig", common: false),
+        opt!("c", "language", "C", "Portable and tiny; the lingua franca of native code and of WebAssembly via Emscripten.",
+             targets: ["ios","android","desktop","web","server","cli"], langs: [], conflicts: [], tool: "clang", common: false),
+        opt!("cpp", "language", "C++", "Games, engines and heavy compute; on the web via Emscripten.",
+             targets: ["ios","android","desktop","web","server","cli"], langs: [], conflicts: [], tool: "clang++", common: false),
+        opt!("csharp", "language", "C#", ".NET: desktop, servers, and phones through .NET MAUI.",
+             targets: ["ios","android","desktop","server","cli"], langs: [], conflicts: [], tool: "dotnet", common: false),
+        opt!("dart", "language", "Dart", "Flutter: one codebase for iOS, Android, desktop and web.",
+             targets: ["ios","android","desktop","web"], langs: [], conflicts: [], tool: "flutter", common: false),
 
         // ---------------- frontend ----------------
         opt!("none-ui", "frontend", "No interface", "Headless service or CLI.",
@@ -92,6 +102,13 @@ pub fn options() -> Vec<StackOption> {
         opt!("vanilla", "frontend", "HTML + CSS + JS", "No framework. Smallest, fastest, zero build step.",
              targets: ["ios","android","desktop","web"], langs: ["ts"],
              conflicts: [], tool: "", common: true),
+        opt!("wasm-shell", "frontend", "HTML shell + WebAssembly core", "A thin HTML/JS page that loads a .wasm module for the heavy work: simulation, rendering, parsing, games.",
+             targets: ["web","desktop","ios","android"], langs: ["rust","zig","c","cpp","go"],
+             conflicts: [], tool: "", common: true),
+        opt!("flutter-ui", "frontend", "Flutter", "Widgets drawn by Flutter on every platform.",
+             targets: ["ios","android","desktop","web"], langs: ["dart"], conflicts: [], tool: "flutter", common: true),
+        opt!("maui", "frontend", ".NET MAUI", "Native controls from one C# codebase.",
+             targets: ["ios","android","desktop"], langs: ["csharp"], conflicts: [], tool: "dotnet", common: true),
         opt!("react", "frontend", "React", "Component model with the largest ecosystem.",
              targets: ["ios","android","desktop","web"], langs: ["ts"],
              conflicts: [], tool: "node", common: true),
@@ -147,7 +164,7 @@ pub fn options() -> Vec<StackOption> {
         opt!("none-css", "styling", "Not applicable", "No visual layer.",
              targets: ["server","cli"], langs: [], conflicts: [], tool: "", common: true),
         opt!("plain-css", "styling", "Plain CSS", "Custom properties and modern CSS. No dependency.",
-             targets: ["ios","android","desktop","web"], langs: ["ts"], conflicts: [], tool: "", common: true),
+             targets: ["ios","android","desktop","web"], langs: ["ts","rust","zig","c","cpp","go"], conflicts: [], tool: "", common: true),
         opt!("tailwind", "styling", "Tailwind", "Utility classes; very fast to iterate.",
              targets: ["ios","android","desktop","web"], langs: ["ts"],
              conflicts: [], tool: "node", common: true),
@@ -183,6 +200,26 @@ pub fn options() -> Vec<StackOption> {
              targets: ["desktop","cli"], langs: ["python"], conflicts: [], tool: "python3", common: true),
         opt!("briefcase", "packaging", "Briefcase", "Packages Python for desktop and mobile.",
              targets: ["desktop","android"], langs: ["python"], conflicts: [], tool: "python3", common: false),
+        opt!("cargo-wasm", "packaging", "Rust → WebAssembly (cargo)", "cargo build --target wasm32-unknown-unknown; plain exports, no bindgen. Built from the Engine panel.",
+             targets: ["web"], langs: ["rust"], conflicts: [], tool: "cargo", common: true),
+        opt!("wasm-pack", "packaging", "Rust → WebAssembly (wasm-pack)", "wasm-bindgen glue for rich JS interop: strings, closures, DOM access.",
+             targets: ["web"], langs: ["rust"], conflicts: [], tool: "wasm-pack", common: false),
+        opt!("zig-wasm", "packaging", "Zig → WebAssembly", "zig build-exe -target wasm32-freestanding; no other tools needed.",
+             targets: ["web"], langs: ["zig"], conflicts: [], tool: "zig", common: true),
+        opt!("emscripten", "packaging", "C/C++ → WebAssembly (Emscripten)", "emcc with SDL/OpenGL ES ports and a generated loader.",
+             targets: ["web"], langs: ["c","cpp"], conflicts: [], tool: "emcc", common: true),
+        opt!("tinygo-wasm", "packaging", "Go → WebAssembly (TinyGo)", "Small .wasm from Go; standard Go's are several MB.",
+             targets: ["web"], langs: ["go"], conflicts: [], tool: "tinygo", common: true),
+        opt!("assemblyscript", "packaging", "AssemblyScript → WebAssembly", "TypeScript-like syntax compiled to .wasm, for the hot loop of a JS app.",
+             targets: ["web"], langs: ["ts"], conflicts: [], tool: "node", common: false),
+        opt!("zig-bin", "packaging", "Zig binary", "One native executable, cross-compiled for macOS, Windows or Linux from here.",
+             targets: ["desktop","cli","server"], langs: ["zig"], conflicts: [], tool: "zig", common: true),
+        opt!("cmake", "packaging", "CMake", "Native C/C++ build for every desktop OS.",
+             targets: ["desktop","cli","server"], langs: ["c","cpp"], conflicts: [], tool: "cmake", common: true),
+        opt!("dotnet", "packaging", ".NET publish", "dotnet publish for macOS, Windows, Linux, iOS or Android.",
+             targets: ["desktop","cli","server","ios","android"], langs: ["csharp"], conflicts: [], tool: "dotnet", common: true),
+        opt!("flutter-build", "packaging", "Flutter build", "flutter build ios / apk / macos / windows / web.",
+             targets: ["ios","android","desktop","web"], langs: ["dart"], conflicts: [], tool: "flutter", common: true),
         opt!("static", "packaging", "Static site", "Plain files on any host.",
              targets: ["web"], langs: ["ts"], conflicts: [], tool: "", common: true),
         opt!("pwa", "packaging", "PWA", "Installable, works offline, no app store.",
@@ -263,12 +300,43 @@ pub fn layer_state(layer: &str, sel: &Selection) -> Vec<OptionState> {
         .collect()
 }
 
+/// The selection key holding the user's hard rules, one per line.
+pub const RULES_KEY: &str = "rules";
+
+/// How well a language reaches each device. Honest about the awkward cases:
+/// Swift does not run on Android, C# reaches iOS only through MAUI, and
+/// anything native reaches the web only as WebAssembly.
+pub fn platforms(lang: &str) -> Vec<(&'static str, &'static str, &'static str)> {
+    // (platform, native | via | no, how)
+    let p = |a: [(&'static str, &'static str); 6]| -> Vec<(&'static str, &'static str, &'static str)> {
+        let names = ["iOS", "Android", "macOS", "Windows", "Linux", "Web"];
+        names.iter().zip(a).map(|(n, (lvl, how))| (*n, lvl, how)).collect()
+    };
+    match lang {
+        "ts" => p([("via", "in a web view (Capacitor / the Xcode export)"), ("via", "in a web view (Capacitor)"), ("via", "Electron or Tauri"), ("via", "Electron or Tauri"), ("via", "Electron or Tauri"), ("native", "the browser")]),
+        "python" => p([("no", "no supported path to the App Store"), ("via", "Briefcase / Kivy"), ("native", ""), ("native", ""), ("native", ""), ("via", "Pyodide (WebAssembly), heavy")]),
+        "rust" => p([("via", "static library called from Swift (UniFFI)"), ("via", "shared library via the NDK, UI in Kotlin"), ("native", ""), ("native", ""), ("native", ""), ("via", "WebAssembly (wasm32-unknown-unknown)")]),
+        "go" => p([("via", "gomobile bind, UI in Swift"), ("via", "gomobile bind, UI in Kotlin"), ("native", ""), ("native", ""), ("native", ""), ("via", "WebAssembly (TinyGo)")]),
+        "swift" => p([("native", ""), ("no", "Swift does not ship Android apps"), ("native", ""), ("no", "no supported UI on Windows"), ("no", "server/CLI only, no UI"), ("no", "")]),
+        "kotlin" => p([("via", "Kotlin Multiplatform, UI in Swift or Compose"), ("native", ""), ("via", "Compose Multiplatform"), ("via", "Compose Multiplatform"), ("via", "Compose Multiplatform"), ("via", "Kotlin/Wasm, experimental")]),
+        "zig" => p([("via", "static library called from Swift"), ("via", "shared library via the NDK"), ("native", ""), ("native", "cross-compiled from macOS"), ("native", "cross-compiled from macOS"), ("via", "WebAssembly (wasm32-freestanding)")]),
+        "c" | "cpp" => p([("via", "compiled into the Xcode project"), ("via", "the NDK, UI in Kotlin or a NativeActivity"), ("native", ""), ("native", ""), ("native", ""), ("via", "WebAssembly (Emscripten)")]),
+        "csharp" => p([("via", ".NET MAUI"), ("via", ".NET MAUI"), ("native", ""), ("native", ""), ("native", "no MAUI UI on Linux"), ("via", "Blazor WebAssembly")]),
+        "dart" => p([("via", "Flutter"), ("via", "Flutter"), ("via", "Flutter"), ("via", "Flutter"), ("via", "Flutter"), ("via", "Flutter web")]),
+        _ => vec![],
+    }
+}
+
 /// Drop any selection that the current choices have invalidated.
 ///
 /// Called after every change, so switching target or language repairs the rest
 /// of the stack instead of leaving a combination that cannot be built.
 pub fn sanitize(sel: &Selection) -> Selection {
     let mut out = Selection::new();
+    // Hard rules are the user's words, not an option: always kept.
+    if let Some(r) = sel.get(RULES_KEY).filter(|r| !r.trim().is_empty()) {
+        out.insert(RULES_KEY.into(), r.chars().take(4000).collect());
+    }
     // Resolve in layer order so upstream choices constrain downstream ones.
     for (layer, _) in LAYERS {
         let Some(id) = get(sel, layer) else { continue };
@@ -347,6 +415,23 @@ pub fn prompt_fragment(sel: &Selection) -> String {
             }
         }
     }
+    if let Some(lang) = get(sel, "language") {
+        let rows = platforms(lang);
+        if !rows.is_empty() {
+            s.push_str(&format!("\n## How {} reaches each device\n\n", label_of(lang)));
+            for (plat, lvl, how) in rows {
+                let how = if how.is_empty() { String::new() } else { format!(" — {how}") };
+                s.push_str(&format!("- {plat}: {}{how}\n", match lvl { "native" => "native", "via" => "through another layer", _ => "not possible" }));
+            }
+            s.push_str("Never promise a platform marked not possible; say so and offer the closest route.\n");
+        }
+    }
+    if let Some(rules) = get(sel, RULES_KEY) {
+        s.push_str("\n## Hard rules (set by the user; never break these)\n\n");
+        for r in rules.lines().map(str::trim).filter(|r| !r.is_empty()) {
+            s.push_str(&format!("- {r}\n"));
+        }
+    }
     s
 }
 
@@ -356,6 +441,38 @@ mod tests {
 
     fn sel(pairs: &[(&str, &str)]) -> Selection {
         pairs.iter().map(|(a, b)| (a.to_string(), b.to_string())).collect()
+    }
+
+    #[test]
+    fn webassembly_builds_are_offered_for_the_web_in_the_right_languages() {
+        let rust_web = layer_state("packaging", &sel(&[("target", "web"), ("language", "rust")]));
+        let ok: Vec<&str> = rust_web.iter().filter(|s| s.enabled).map(|s| s.option.id.as_str()).collect();
+        assert!(ok.contains(&"cargo-wasm") && ok.contains(&"wasm-pack"), "{ok:?}");
+        assert!(!ok.contains(&"zig-wasm") && !ok.contains(&"emscripten"));
+        let zig_desktop = layer_state("packaging", &sel(&[("target", "desktop"), ("language", "zig")]));
+        assert!(zig_desktop.iter().any(|s| s.enabled && s.option.id == "zig-bin"));
+        assert!(zig_desktop.iter().all(|s| !(s.enabled && s.option.id == "zig-wasm")), "wasm is a web target");
+        let p = preset("web");
+        assert!(sanitize(&p) == p);
+        let mut s = sel(&[("target", "web"), ("language", "zig"), ("frontend", "wasm-shell"), ("packaging", "zig-wasm")]);
+        assert_eq!(sanitize(&s).get("packaging").map(String::as_str), Some("zig-wasm"));
+        s.insert(RULES_KEY.into(), "All simulation code in Zig\nNo JavaScript frameworks".into());
+        let clean = sanitize(&s);
+        assert_eq!(clean.get(RULES_KEY).unwrap().lines().count(), 2, "hard rules survive sanitising");
+        let f = prompt_fragment(&clean);
+        assert!(f.contains("Hard rules") && f.contains("- No JavaScript frameworks"));
+        assert!(f.contains("How Zig reaches each device") && f.contains("Web: through another layer — WebAssembly"));
+        let sw = prompt_fragment(&sel(&[("target", "ios"), ("language", "swift")]));
+        assert!(sw.contains("Android: not possible"), "{sw}");
+    }
+
+    #[test]
+    fn every_language_has_an_honest_platform_row_for_each_device() {
+        for o in options().into_iter().filter(|o| o.layer == "language") {
+            let rows = platforms(&o.id);
+            assert_eq!(rows.len(), 6, "{}", o.id);
+            assert!(rows.iter().all(|(_, l, _)| ["native", "via", "no"].contains(l)));
+        }
     }
 
     #[test]

@@ -131,10 +131,23 @@ fn config_path() -> PathBuf {
 }
 
 pub fn list() -> Vec<Server> {
-    std::fs::read_to_string(config_path())
+    let mut all: Vec<Server> = std::fs::read_to_string(config_path())
         .ok()
         .and_then(|t| serde_json::from_str(&t).ok())
-        .unwrap_or_default()
+        .unwrap_or_default();
+    // The built-in server is always there; its tools come from the code, its
+    // switches (on, trusted, always-allowed tools) from the saved copy.
+    let builtin = crate::builtin_tools::server();
+    match all.iter_mut().find(|s| s.id == builtin.id) {
+        Some(s) => {
+            s.tools = builtin.tools;
+            s.transport = builtin.transport;
+            s.name = builtin.name;
+            s.notes = builtin.notes;
+        }
+        None => all.insert(0, builtin),
+    }
+    all
 }
 
 fn write_all(servers: &[Server]) -> Result<()> {
@@ -174,6 +187,8 @@ pub fn validate(s: &Server) -> Result<()> {
         bail!("The id may only contain lower-case letters, digits and dashes.");
     }
     match s.transport.as_str() {
+        "builtin" if s.id == crate::builtin_tools::SERVER_ID => {}
+        "builtin" => bail!("Only VibeApp's own server is built in."),
         "stdio" => {
             if s.command.trim().is_empty() {
                 bail!("A local server needs the command that starts it, such as npx.");
@@ -249,6 +264,9 @@ pub fn update<F: FnOnce(&mut Server)>(id: &str, f: F) -> Result<Server> {
 }
 
 pub fn remove(id: &str) -> Result<()> {
+    if id == crate::builtin_tools::SERVER_ID {
+        bail!("The built-in tools cannot be removed; switch them off instead.");
+    }
     let mut all = list();
     if let Some(s) = all.iter().find(|x| x.id == id) {
         for v in &s.env {
@@ -369,6 +387,42 @@ fn http(id: &str, name: &str, url: &str, headers: &[(&str, &str, bool)]) -> Serv
 /// nothing ever. Package names were checked against npm and PyPI.
 pub fn presets() -> Vec<Preset> {
     vec![
+        Preset {
+            id: "deepwiki", name: "DeepWiki", group: "No install needed",
+            blurb: "Ask questions about any public GitHub repository's code and architecture.",
+            needs: "Nothing: a hosted server, no key.", homepage: "https://deepwiki.com",
+            server: http("deepwiki", "DeepWiki", "https://mcp.deepwiki.com/mcp", &[]),
+        },
+        Preset {
+            id: "context7-remote", name: "Context7 docs (hosted)", group: "No install needed",
+            blurb: "Current documentation for thousands of libraries and frameworks — three.js, Godot, Unity, React, Rust crates.",
+            needs: "Nothing: a hosted server, no key.", homepage: "https://context7.com",
+            server: http("context7-remote", "Context7", "https://mcp.context7.com/mcp", &[]),
+        },
+        Preset {
+            id: "huggingface", name: "Hugging Face", group: "No install needed",
+            blurb: "Search models, datasets, papers and Spaces — including uncensored and fine-tuned models to run locally.",
+            needs: "Nothing for search; add an HF token header for more.", homepage: "https://huggingface.co/mcp",
+            server: http("huggingface", "Hugging Face", "https://huggingface.co/mcp", &[]),
+        },
+        Preset {
+            id: "mslearn", name: "Microsoft Learn", group: "No install needed",
+            blurb: "Official docs for C#, .NET MAUI, Windows apps and Azure.",
+            needs: "Nothing: a hosted server, no key.", homepage: "https://learn.microsoft.com",
+            server: http("mslearn", "Microsoft Learn", "https://learn.microsoft.com/api/mcp", &[]),
+        },
+        Preset {
+            id: "cloudflare-docs", name: "Cloudflare docs", group: "No install needed",
+            blurb: "Workers, Pages and WebAssembly at the edge, for deploying web apps and games.",
+            needs: "Nothing: a hosted server, no key.", homepage: "https://developers.cloudflare.com",
+            server: http("cloudflare-docs", "Cloudflare docs", "https://docs.mcp.cloudflare.com/mcp", &[]),
+        },
+        Preset {
+            id: "gitmcp", name: "GitMCP docs", group: "No install needed",
+            blurb: "Documentation and code of any GitHub project, by URL.",
+            needs: "Nothing: a hosted server, no key.", homepage: "https://gitmcp.io",
+            server: http("gitmcp", "GitMCP", "https://gitmcp.io/docs", &[]),
+        },
         Preset {
             id: "rea", name: "REA — Reverse Engineer Anything", group: "Reverse engineering",
             blurb: "Drives Ghidra, IDA or Hopper for native binaries, plus Electron/JavaScript, .NET, Android APKs, firmware, websites and network captures.",
@@ -1066,6 +1120,9 @@ pub fn parse_tools(result: &Value) -> Vec<Tool> {
 
 /// Start the server if needed and ask it for its tools, following pages.
 pub async fn list_tools(s: &Server) -> Result<Vec<Tool>> {
+    if s.transport == "builtin" {
+        return Ok(crate::builtin_tools::tools());
+    }
     let mut tools = Vec::new();
     let mut cursor: Option<String> = None;
     for _ in 0..20 {

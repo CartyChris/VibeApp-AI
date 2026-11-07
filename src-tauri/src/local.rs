@@ -1,4 +1,5 @@
-//! Local model runtimes: Ollama, LM Studio, llama.cpp, Unsloth Studio.
+//! Local model runtimes: Ollama, LM Studio, llama.cpp, Unsloth Studio, KoboldCpp,
+//! text-generation-webui and Jan.
 //!
 //! **This module never starts a runtime and never loads a model.** It asks a
 //! server that is *already running* what it has, and it writes down what the
@@ -55,6 +56,27 @@ pub fn runtimes() -> Vec<Runtime> {
             base_url: "http://127.0.0.1:8000/v1".into(),
             list_url: "http://127.0.0.1:8000/v1/models".into(),
             hint: "Start the Unsloth Studio OpenAI-compatible server on port 8000.".into(),
+        },
+        Runtime {
+            id: "koboldcpp".into(),
+            name: "KoboldCpp".into(),
+            base_url: "http://127.0.0.1:5001/v1".into(),
+            list_url: "http://127.0.0.1:5001/v1/models".into(),
+            hint: "Run KoboldCpp with a GGUF model; its OpenAI-compatible API is on port 5001. Popular for interactive fiction.".into(),
+        },
+        Runtime {
+            id: "textgen".into(),
+            name: "text-generation-webui".into(),
+            base_url: "http://127.0.0.1:5000/v1".into(),
+            list_url: "http://127.0.0.1:5000/v1/models".into(),
+            hint: "Start text-generation-webui with `--api`; the OpenAI-compatible API is on port 5000.".into(),
+        },
+        Runtime {
+            id: "jan".into(),
+            name: "Jan".into(),
+            base_url: "http://127.0.0.1:1337/v1".into(),
+            list_url: "http://127.0.0.1:1337/v1/models".into(),
+            hint: "Open Jan and turn on the Local API Server (port 1337).".into(),
         },
     ]
 }

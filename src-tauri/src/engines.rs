@@ -22,7 +22,7 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 /// Project kinds this module knows. `game3d` is a three.js game in the preview.
-pub const KINDS: &[&str] = &["game3d", "godot", "unity", "unreal", "vork"];
+pub const KINDS: &[&str] = &["game3d", "godot", "unity", "unreal", "vork", "rustwasm", "zigwasm"];
 
 pub fn is_engine_kind(kind: &str) -> bool {
     KINDS.contains(&kind)
@@ -136,6 +136,24 @@ pub fn detect_cached() -> Vec<Tool> {
     t
 }
 
+/// Every copy of an app Spotlight knows by its bundle id, /Applications first.
+/// Apps live wherever people drop them — the user's Godot was in Downloads.
+fn spotlight(bundle_id: &str) -> Vec<PathBuf> {
+    let Ok(out) = std::process::Command::new("/usr/bin/mdfind")
+        .arg(format!("kMDItemCFBundleIdentifier == '{bundle_id}'"))
+        .output()
+    else {
+        return vec![];
+    };
+    let mut v: Vec<PathBuf> = String::from_utf8_lossy(&out.stdout)
+        .lines()
+        .map(PathBuf::from)
+        .filter(|p| p.extension().is_some_and(|x| x == "app") && !p.to_string_lossy().contains("/.Trash/"))
+        .collect();
+    v.sort_by_key(|p| !p.starts_with("/Applications"));
+    v
+}
+
 pub fn detect() -> Vec<Tool> {
     let apps = |p: &str| vec![PathBuf::from("/Applications").join(p), home().join("Applications").join(p)];
     let mut out = Vec::new();
@@ -144,7 +162,8 @@ pub fn detect() -> Vec<Tool> {
         [apps("Godot.app/Contents/MacOS/Godot"), apps("Godot_mono.app/Contents/MacOS/Godot")].concat(),
     )
     .or_else(|| crate::bridges::find_bin("godot"))
-    .or_else(|| crate::bridges::find_bin("godot4"));
+    .or_else(|| crate::bridges::find_bin("godot4"))
+    .or_else(|| spotlight("org.godotengine.godot").into_iter().map(|a| a.join("Contents/MacOS/Godot")).find(|p| p.exists()));
     out.push(Tool {
         id: "godot".into(),
         name: "Godot".into(),
@@ -169,7 +188,11 @@ pub fn detect() -> Vec<Tool> {
         found: unity.is_some(),
         version: unity_dir.and_then(|d| d.file_name().map(|n| n.to_string_lossy().to_string())).unwrap_or_default(),
         path: unity.map(|p| p.to_string_lossy().into()).unwrap_or_default(),
-        install: "Install Unity Hub from unity.com, then an editor (6.x LTS) with the WebGL, iOS and Android build modules.".into(),
+        install: if first_existing(apps("Unity Hub.app")).is_some() {
+            "Unity Hub is installed. Open it, sign in with your Unity ID, then Installs → Install Editor (6.x LTS) with the WebGL, iOS and Android modules (about 8–15 GB).".into()
+        } else {
+            "Install Unity Hub from unity.com, then an editor (6.x LTS) with the WebGL, iOS and Android build modules.".into()
+        },
         homepage: "https://unity.com".into(),
         ..Default::default()
     });
@@ -189,11 +212,16 @@ pub fn detect() -> Vec<Tool> {
             .unwrap_or_default(),
         path: ue_editor.map(|p| p.to_string_lossy().into()).unwrap_or_default(),
         root: ue_root.map(|p| p.to_string_lossy().into()).unwrap_or_default(),
-        install: "Install the Epic Games Launcher, then Unreal Engine 5, and Xcode for C++ compiles.".into(),
+        install: if first_existing(apps("Epic Games Launcher.app")).is_some() {
+            "The Epic Games Launcher is installed. Open it, sign in, then Unreal Engine → Library → + to install UE 5 (60 GB or more), and Xcode for C++ compiles.".into()
+        } else {
+            "Install the Epic Games Launcher, then Unreal Engine 5, and Xcode for C++ compiles.".into()
+        },
         homepage: "https://www.unrealengine.com".into(),
     });
 
-    let blender = first_existing(apps("Blender.app/Contents/MacOS/Blender")).or_else(|| crate::bridges::find_bin("blender"));
+    let blender = first_existing(apps("Blender.app/Contents/MacOS/Blender"))
+        .or_else(|| spotlight("org.blenderfoundation.blender").into_iter().map(|a| a.join("Contents/MacOS/Blender")).find(|p| p.exists()));
     out.push(Tool {
         id: "blender".into(),
         name: "Blender".into(),
@@ -217,7 +245,41 @@ pub fn detect() -> Vec<Tool> {
         ..Default::default()
     });
 
-    let cascadeur = first_existing(apps("Cascadeur.app"));
+    let cargo = crate::bridges::find_bin("cargo").or_else(|| first_existing(vec![home().join(".cargo/bin/cargo")]));
+    let wasm_target = home().join(".rustup/toolchains").read_dir().ok().is_some_and(|mut d| {
+        d.any(|e| e.ok().is_some_and(|e| e.path().join("lib/rustlib/wasm32-unknown-unknown").exists()))
+    });
+    out.push(Tool {
+        id: "rust".into(),
+        name: "Rust".into(),
+        found: cargo.is_some(),
+        version: cargo.as_ref().map(|b| {
+            let v = version_of(b, "--version");
+            let v = v.trim_start_matches("cargo ").to_string();
+            if wasm_target { format!("{v} · wasm32 ready") } else { format!("{v} · add wasm32 with Set up") }
+        }).unwrap_or_default(),
+        path: cargo.map(|p| p.to_string_lossy().into()).unwrap_or_default(),
+        install: "Install Rust from rustup.rs, then `rustup target add wasm32-unknown-unknown` (or press Set up).".into(),
+        homepage: "https://rustup.rs".into(),
+        ..Default::default()
+    });
+
+    let zig = crate::bridges::find_bin("zig");
+    out.push(Tool {
+        id: "zig".into(),
+        name: "Zig".into(),
+        found: zig.is_some(),
+        version: zig.as_ref().map(|b| version_of(b, "version")).unwrap_or_default(),
+        path: zig.map(|p| p.to_string_lossy().into()).unwrap_or_default(),
+        install: "Install Zig from ziglang.org (or `brew install zig`).".into(),
+        homepage: "https://ziglang.org/download/".into(),
+        ..Default::default()
+    });
+
+    let cascadeur = first_existing(apps("Cascadeur.app")).or_else(|| {
+        let out = std::process::Command::new("/usr/bin/mdfind").args(["-name", "Cascadeur.app"]).output().ok()?;
+        String::from_utf8_lossy(&out.stdout).lines().map(PathBuf::from).find(|p| p.ends_with("Cascadeur.app"))
+    });
     out.push(Tool {
         id: "cascadeur".into(),
         name: "Cascadeur".into(),
@@ -282,6 +344,13 @@ pub fn actions(kind: &str) -> Vec<Action> {
             act("check", "Compile", "Compile the C++ modules and report errors.", true, false),
             act("editor", "Open in Unreal", "Open the project in the Unreal editor.", false, true),
         ],
+        "rustwasm" => vec![
+            act("build", "Build", "cargo build --release --target wasm32-unknown-unknown, then show it in the preview.", true, false),
+            act("setup", "Set up", "rustup target add wasm32-unknown-unknown (once).", false, false),
+        ],
+        "zigwasm" => vec![
+            act("build", "Build", "zig build-exe for wasm32-freestanding, then show it in the preview.", true, false),
+        ],
         "vork" => vec![
             act("render", "Render preview", "Render scene.json quickly (std/previs) to render.png.", false, false),
             act("render-final", "Render final", "Render at delivery quality (std/final) to render.png.", false, false),
@@ -302,6 +371,8 @@ pub struct Plan {
     pub timeout: Duration,
     /// Files to create first if missing (a build script for an imported project).
     pub ensure: Vec<(String, String)>,
+    /// After a successful run, copy this output (relative paths) into place.
+    pub copy_after: Option<(String, String)>,
     /// Folders to create first.
     pub dirs: Vec<String>,
 }
@@ -336,13 +407,16 @@ pub fn plan(kind: &str, action: &str, root: &Path, tools: &[Tool]) -> Result<Pla
         timeout: Duration::from_secs(600),
         ensure: vec![],
         dirs: vec![],
+        copy_after: None,
     };
     let r = s(root);
     let p = match (kind, action) {
         ("godot", _) => {
             let g = PathBuf::from(&tool(tools, "godot")?.path);
             match action {
-                "check" => Plan { program: g, args: vec!["--headless".into(), "--path".into(), r, "--quit".into()], timeout: Duration::from_secs(300), ..base },
+                // Run the main scene for 30 frames: catches runtime errors as
+                // well as parse errors, with file and line.
+                "check" => Plan { program: g, args: vec!["--headless".into(), "--path".into(), r, "--quit-after".into(), "30".into()], timeout: Duration::from_secs(300), ..base },
                 "export-web" => Plan {
                     program: g,
                     args: vec!["--headless".into(), "--path".into(), r, "--export-release".into(), "Web".into(), "build/web/index.html".into()],
@@ -411,7 +485,35 @@ pub fn plan(kind: &str, action: &str, root: &Path, tools: &[Tool]) -> Result<Pla
                 _ => bail!("vork has no action '{action}'."),
             }
         }
-        _ => bail!("This project has no engine actions."),
+        ("rustwasm", _) => {
+            let c = PathBuf::from(&tool(tools, "rust")?.path);
+            match action {
+                "build" => Plan {
+                    program: c,
+                    args: vec!["build".into(), "--release".into(), "--target".into(), "wasm32-unknown-unknown".into()],
+                    entry: Some("index.html".into()),
+                    timeout: Duration::from_secs(900),
+                    copy_after: Some(("target/wasm32-unknown-unknown/release/app.wasm".into(), "app.wasm".into())),
+                    ..base
+                },
+                "setup" => Plan {
+                    program: c.with_file_name("rustup"),
+                    args: vec!["target".into(), "add".into(), "wasm32-unknown-unknown".into()],
+                    timeout: Duration::from_secs(600),
+                    ..base
+                },
+                _ => bail!("Rust has no action '{action}'."),
+            }
+        }
+        ("zigwasm", "build") => Plan {
+            program: PathBuf::from(&tool(tools, "zig")?.path),
+            args: vec!["build-exe".into(), "src/main.zig".into(), "-target".into(), "wasm32-freestanding".into(), "-fno-entry".into(),
+                       "-rdynamic".into(), "-O".into(), "ReleaseSmall".into(), "-femit-bin=app.wasm".into()],
+            entry: Some("index.html".into()),
+            timeout: Duration::from_secs(600),
+            ..base
+        },
+        _ => bail!("This project has no engine action '{action}'."),
     };
     Ok(p)
 }
@@ -465,8 +567,15 @@ pub async fn run(kind: &str, plan: &Plan) -> Result<RunOutput> {
         return Ok(RunOutput { ok: true, log: "Opened.".into(), ..Default::default() });
     }
     let started = std::time::Instant::now();
+    // GUI apps start with a bare PATH; a toolchain's own tools live beside it.
+    let path = format!(
+        "{}:{}",
+        plan.program.parent().map(|p| p.to_string_lossy().to_string()).unwrap_or_default(),
+        std::env::var("PATH").unwrap_or_default()
+    );
     let child = tokio::process::Command::new(&plan.program)
         .args(&plan.args)
+        .env("PATH", path)
         .current_dir(&plan.cwd)
         .stdin(std::process::Stdio::null())
         .stdout(std::process::Stdio::piped())
@@ -486,6 +595,12 @@ pub async fn run(kind: &str, plan: &Plan) -> Result<RunOutput> {
     }
     let errors = parse_errors(kind, &log, &plan.cwd);
     let ok = out.status.success() && errors.is_empty();
+    if ok {
+        if let Some((from, to)) = &plan.copy_after {
+            fs::copy(crate::state::safe_join(&plan.cwd, from)?, crate::state::safe_join(&plan.cwd, to)?)
+                .with_context(|| format!("copying {from} to {to}"))?;
+        }
+    }
     let entry_ok = plan.entry.as_ref().filter(|e| plan.cwd.join(e).exists()).cloned();
     Ok(RunOutput {
         ok,
@@ -516,12 +631,20 @@ pub fn parse_errors(kind: &str, log: &str, root: &Path) -> Vec<String> {
             }
             "unreal" => t.contains(": error") || t.contains("error:") || t.starts_with("ERROR:"),
             "vork" => t.starts_with("error:") || t.starts_with("Error:"),
+            "rustwasm" => t.starts_with("error[") || (t.starts_with("error:") && !t.starts_with("error: could not compile")),
+            "zigwasm" => t.contains(": error:"),
             _ => false,
         };
         if !hit {
             continue;
         }
         let mut msg = clean(t);
+        // rustc puts the location on the next line: ` --> src/lib.rs:12:5`.
+        if kind == "rustwasm" {
+            if let Some(n) = lines.get(i + 1).map(|n| n.trim()).filter(|n| n.starts_with("-->")) {
+                msg = format!("{msg} ({})", clean(n.trim_start_matches("-->")));
+            }
+        }
         // Godot puts the location on the next line.
         if kind == "godot" {
             if let Some(next) = lines.get(i + 1) {
@@ -662,6 +785,19 @@ pub fn scaffold(kind: &str, name: &str, root: &Path, tools: &[Tool]) -> Result<V
             write(root, "Config/DefaultGame.ini", &fill(UNREAL_GAME_INI), &mut out)?;
             write(root, ".gitignore", "Binaries/\nIntermediate/\nSaved/\nDerivedDataCache/\n*.xcworkspace\n", &mut out)?;
         }
+        "rustwasm" => {
+            write(root, "Cargo.toml", RUST_WASM_CARGO, &mut out)?;
+            write(root, "src/lib.rs", RUST_WASM_LIB, &mut out)?;
+            write(root, "index.html", &WASM_INDEX.replace("{{NAME}}", &esc_html(name)).replace("{{LANG}}", "Rust"), &mut out)?;
+            write(root, "main.js", WASM_MAIN_JS, &mut out)?;
+            write(root, ".gitignore", "target/\napp.wasm\n", &mut out)?;
+        }
+        "zigwasm" => {
+            write(root, "src/main.zig", ZIG_WASM_MAIN, &mut out)?;
+            write(root, "index.html", &WASM_INDEX.replace("{{NAME}}", &esc_html(name)).replace("{{LANG}}", "Zig"), &mut out)?;
+            write(root, "main.js", WASM_MAIN_JS, &mut out)?;
+            write(root, ".gitignore", ".zig-cache/\nzig-out/\napp.wasm\n", &mut out)?;
+        }
         "vork" => {
             write(root, "scene.json", VORK_SCENE, &mut out)?;
             write(root, "index.html", VORK_VIEWER, &mut out)?;
@@ -749,6 +885,19 @@ pub fn prompt_block(kind: &str, tools: &[Tool], vork_help: Option<&str>) -> Stri
                 s.push_str(&tail_head(h, 10_000));
             }
             s
+        }
+        "rustwasm" | "zigwasm" => {
+            let (lang, file, tool_id) = if kind == "rustwasm" { ("Rust", "src/lib.rs", "rust") } else { ("Zig", "src/main.zig", "zig") };
+            format!(r#"# This project: a {lang} → WebAssembly web app
+
+{}
+- The heavy work (simulation, physics, parsing, rendering maths) lives in `{file}` and is compiled to `app.wasm`. `index.html` and `main.js` are the thin shell: they load `app.wasm`, call its exports and draw.
+- Exports are plain C-ABI functions taking and returning numbers and pointers (no wasm-bindgen): {}. Share bulk data through linear memory: return a pointer, read it in JS as `new Uint8Array(exports.memory.buffer, ptr, len)` — re-create the view after anything that may grow memory.
+- Keep the export names and signatures in `{file}` and `main.js` in step; a mismatch is a runtime error, not a compile error.
+- The user presses Build in the Engine panel; you cannot compile. Write code that compiles as written, and after a change say "press Build".
+- No allocator-heavy code in the hot loop; reuse buffers. Touch and keyboard both, through pointer events."#,
+                engine_line(tool_id, lang),
+                if kind == "rustwasm" { "`#[no_mangle] pub extern \"C\" fn name(...)` in a `cdylib` crate (edition 2021)" } else { "`export fn name(...) T` in Zig, built for wasm32-freestanding with -rdynamic" })
         }
         _ => return String::new(),
     };
@@ -1410,6 +1559,286 @@ pub const VORK_VIEWER: &str = r#"<!doctype html>
 </html>
 "#;
 
+const RUST_WASM_CARGO: &str = r#"[package]
+name = "app"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+path = "src/lib.rs"
+
+[profile.release]
+opt-level = "s"
+lto = true
+panic = "abort"
+"#;
+
+const RUST_WASM_LIB: &str = r#"//! The simulation, in Rust, compiled to WebAssembly; main.js draws it.
+//! Conway's Game of Life on a wrapping grid — replace it with your own core.
+
+pub struct World {
+    w: usize,
+    h: usize,
+    cells: Vec<u8>,
+    next: Vec<u8>,
+    seed: u32,
+}
+
+fn world<'a>(p: *mut World) -> &'a mut World {
+    // The page holds this pointer for the life of the app and never frees it.
+    unsafe { &mut *p }
+}
+
+impl World {
+    fn rand(&mut self) -> u32 {
+        self.seed ^= self.seed << 13;
+        self.seed ^= self.seed >> 17;
+        self.seed ^= self.seed << 5;
+        self.seed
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn world_new(w: u32, h: u32) -> *mut World {
+    let n = (w * h) as usize;
+    Box::into_raw(Box::new(World { w: w as usize, h: h as usize, cells: vec![0; n], next: vec![0; n], seed: 0x9e37_79b9 }))
+}
+
+#[no_mangle]
+pub extern "C" fn world_randomize(p: *mut World, percent: u32) {
+    let wd = world(p);
+    for i in 0..wd.cells.len() {
+        let alive = wd.rand() % 100 < percent;
+        wd.cells[i] = alive as u8;
+    }
+}
+
+/// Advance one generation; returns how many cells are alive.
+#[no_mangle]
+pub extern "C" fn world_tick(p: *mut World) -> u32 {
+    let wd = world(p);
+    let (w, h) = (wd.w, wd.h);
+    let mut alive = 0u32;
+    for y in 0..h {
+        for x in 0..w {
+            let mut n = 0u8;
+            for (dx, dy) in [(w - 1, h - 1), (0, h - 1), (1, h - 1), (w - 1, 0), (1, 0), (w - 1, 1), (0, 1), (1, 1)] {
+                n += wd.cells[((y + dy) % h) * w + (x + dx) % w];
+            }
+            let me = wd.cells[y * w + x];
+            let live = (me == 1 && (n == 2 || n == 3)) || (me == 0 && n == 3);
+            wd.next[y * w + x] = live as u8;
+            alive += live as u32;
+        }
+    }
+    std::mem::swap(&mut wd.cells, &mut wd.next);
+    alive
+}
+
+#[no_mangle]
+pub extern "C" fn world_cells(p: *mut World) -> *const u8 {
+    world(p).cells.as_ptr()
+}
+
+/// Bring a small patch to life around (x, y) — where the player touched.
+#[no_mangle]
+pub extern "C" fn world_poke(p: *mut World, x: u32, y: u32) {
+    let wd = world(p);
+    let (w, h) = (wd.w, wd.h);
+    for dy in 0..3 {
+        for dx in 0..3 {
+            let cx = (x as usize + dx + w - 1) % w;
+            let cy = (y as usize + dy + h - 1) % h;
+            let r = wd.rand();
+            wd.cells[cy * w + cx] = (r % 3 != 0) as u8;
+        }
+    }
+}
+"#;
+
+const ZIG_WASM_MAIN: &str = r#"//! The simulation, in Zig, compiled to WebAssembly; main.js draws it.
+//! Conway's Game of Life on a wrapping grid — replace it with your own core.
+
+const W: usize = 96;
+const H: usize = 160;
+
+var cells: [W * H]u8 = [_]u8{0} ** (W * H);
+var next: [W * H]u8 = [_]u8{0} ** (W * H);
+var seed: u32 = 0x9e3779b9;
+
+fn rand() u32 {
+    seed ^= seed << 13;
+    seed ^= seed >> 17;
+    seed ^= seed << 5;
+    return seed;
+}
+
+/// One world of W×H; the size arguments match main.js and are not used.
+export fn world_new(w: u32, h: u32) u32 {
+    _ = w;
+    _ = h;
+    return 1;
+}
+
+export fn world_randomize(p: u32, percent: u32) void {
+    _ = p;
+    for (&cells) |*c| {
+        c.* = if (rand() % 100 < percent) 1 else 0;
+    }
+}
+
+export fn world_tick(p: u32) u32 {
+    _ = p;
+    var alive: u32 = 0;
+    var y: usize = 0;
+    while (y < H) : (y += 1) {
+        var x: usize = 0;
+        while (x < W) : (x += 1) {
+            var n: u8 = 0;
+            const xs = [3]usize{ (x + W - 1) % W, x, (x + 1) % W };
+            const ys = [3]usize{ (y + H - 1) % H, y, (y + 1) % H };
+            for (ys) |yy| {
+                for (xs) |xx| {
+                    if (xx == x and yy == y) continue;
+                    n += cells[yy * W + xx];
+                }
+            }
+            const me = cells[y * W + x];
+            const live: u8 = if ((me == 1 and (n == 2 or n == 3)) or (me == 0 and n == 3)) 1 else 0;
+            next[y * W + x] = live;
+            alive += live;
+        }
+    }
+    cells = next;
+    return alive;
+}
+
+export fn world_cells(p: u32) [*]const u8 {
+    _ = p;
+    return &cells;
+}
+
+export fn world_poke(p: u32, x: u32, y: u32) void {
+    _ = p;
+    var dy: usize = 0;
+    while (dy < 3) : (dy += 1) {
+        var dx: usize = 0;
+        while (dx < 3) : (dx += 1) {
+            const cx = (@as(usize, x) + dx + W - 1) % W;
+            const cy = (@as(usize, y) + dy + H - 1) % H;
+            cells[cy * W + cx] = if (rand() % 3 != 0) 1 else 0;
+        }
+    }
+}
+"#;
+
+const WASM_INDEX: &str = r##"<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#07110f">
+<title>{{NAME}}</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #07110f; color: #d9fff4;
+    font: 600 15px/1.3 -apple-system, system-ui, sans-serif; overscroll-behavior: none; }
+  main { display: grid; grid-template-rows: auto 1fr auto; height: 100%; height: 100dvh;
+    padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)); box-sizing: border-box; gap: 10px; }
+  header { display: flex; justify-content: space-between; align-items: center; }
+  #board { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; touch-action: none; border-radius: 12px; background: #0b1a17; }
+  .bar { display: flex; gap: 10px; justify-content: center; }
+  button { min-height: 44px; padding: 0 18px; border-radius: 22px; border: 1px solid #2c5a50; background: #123029; color: inherit; font: inherit; }
+  #note { text-align: center; opacity: .75; }
+</style>
+</head>
+<body>
+<main>
+  <header><span>{{NAME}} · {{LANG}} + WebAssembly</span><span id="alive" role="status">…</span></header>
+  <canvas id="board" aria-label="Simulation — touch to add life"></canvas>
+  <div class="bar">
+    <button id="pause">Pause</button>
+    <button id="shake">Shuffle</button>
+  </div>
+  <p id="note" hidden>Not built yet: press Build in the Engine panel.</p>
+</main>
+<script type="module" src="./main.js"></script>
+</body>
+</html>
+"##;
+
+const WASM_MAIN_JS: &str = r#"// The shell: load app.wasm, call its exports, draw its memory.
+const W = 96, H = 160;
+const canvas = document.getElementById('board');
+const ctx = canvas.getContext('2d');
+canvas.width = W;
+canvas.height = H;
+const alive = document.getElementById('alive');
+
+async function load() {
+  const res = await fetch('app.wasm');
+  if (!res.ok) throw new Error('app.wasm is missing');
+  try {
+    return (await WebAssembly.instantiateStreaming(res, {})).instance.exports;
+  } catch {
+    // Served without the application/wasm type: compile from bytes instead.
+    const bytes = await (await fetch('app.wasm')).arrayBuffer();
+    return (await WebAssembly.instantiate(bytes, {})).instance.exports;
+  }
+}
+
+let wasm;
+try {
+  wasm = await load();
+} catch {
+  document.getElementById('note').hidden = false;
+  alive.textContent = 'not built';
+}
+
+if (wasm) {
+  const world = wasm.world_new(W, H);
+  wasm.world_randomize(world, 28);
+  const img = ctx.createImageData(W, H);
+  let paused = false, acc = 0, last = performance.now(), count = 0;
+
+  const draw = () => {
+    const cells = new Uint8Array(wasm.memory.buffer, wasm.world_cells(world), W * H);
+    const px = img.data;
+    for (let i = 0; i < cells.length; i++) {
+      const on = cells[i] === 1, o = i * 4;
+      px[o] = on ? 94 : 11; px[o + 1] = on ? 234 : 26; px[o + 2] = on ? 212 : 23; px[o + 3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+    alive.textContent = `${count} alive`;
+  };
+
+  const frame = now => {
+    const dt = Math.min(0.1, (now - last) / 1000);
+    last = now;
+    if (!paused && !document.hidden) {
+      acc += dt;
+      while (acc >= 1 / 15) { count = wasm.world_tick(world); acc -= 1 / 15; }
+    }
+    draw();
+    requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+
+  const poke = e => {
+    const r = canvas.getBoundingClientRect();
+    const scale = Math.min(r.width / W, r.height / H);
+    const ox = r.left + (r.width - W * scale) / 2, oy = r.top + (r.height - H * scale) / 2;
+    const x = Math.floor((e.clientX - ox) / scale), y = Math.floor((e.clientY - oy) / scale);
+    if (x >= 0 && y >= 0 && x < W && y < H) wasm.world_poke(world, x, y);
+  };
+  canvas.addEventListener('pointerdown', e => { canvas.setPointerCapture(e.pointerId); poke(e); });
+  canvas.addEventListener('pointermove', e => { if (e.buttons) poke(e); });
+  document.getElementById('pause').onclick = e => { paused = !paused; e.target.textContent = paused ? 'Play' : 'Pause'; };
+  document.getElementById('shake').onclick = () => wasm.world_randomize(world, 28);
+  addEventListener('keydown', e => { if (e.code === 'Space') { paused = !paused; e.preventDefault(); } });
+}
+"#;
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1543,6 +1972,7 @@ mod tests {
         ];
         let p = plan("godot", "export-web", &root, &tools).unwrap();
         assert_eq!(p.args, ["--headless", "--path", &root.to_string_lossy(), "--export-release", "Web", "build/web/index.html"]);
+        assert!(plan("godot", "check", &root, &tools).unwrap().args.contains(&"--quit-after".to_string()));
         assert_eq!(p.entry.as_deref(), Some("build/web/index.html"));
         assert!(p.ensure.iter().any(|(f, _)| f == "build/.gdignore"));
         assert!(plan("godot", "editor", &root, &tools).unwrap().spawn);
@@ -1628,6 +2058,31 @@ mod tests {
     }
 
     #[test]
+    fn the_wasm_starters_agree_on_their_exports() {
+        let js_calls: Vec<&str> = ["world_new", "world_randomize", "world_tick", "world_cells", "world_poke"].to_vec();
+        for name in &js_calls {
+            assert!(WASM_MAIN_JS.contains(&format!("wasm.{name}(")), "main.js does not call {name}");
+            assert!(RUST_WASM_LIB.contains(&format!("pub extern \"C\" fn {name}(")), "Rust lacks {name}");
+            assert!(ZIG_WASM_MAIN.contains(&format!("export fn {name}(")), "Zig lacks {name}");
+        }
+        assert!(ZIG_WASM_MAIN.contains("const W: usize = 96;") && ZIG_WASM_MAIN.contains("const H: usize = 160;"));
+        assert!(WASM_MAIN_JS.contains("const W = 96, H = 160;"));
+        let root = scratch();
+        scaffold("rustwasm", "Life", &root, &[]).unwrap();
+        let own: Vec<(String, String)> = files(&root);
+        assert!(crate::adapt::audit_many(&own).is_empty(), "{:#?}", crate::adapt::audit_many(&own));
+        let tools = vec![found("rust", "/h/.cargo/bin/cargo", "", "1.97"), found("zig", "/z/zig", "", "0.14")];
+        let p = plan("rustwasm", "build", &root, &tools).unwrap();
+        assert_eq!(p.copy_after.as_ref().unwrap().1, "app.wasm");
+        assert_eq!(plan("rustwasm", "setup", &root, &tools).unwrap().program, PathBuf::from("/h/.cargo/bin/rustup"));
+        assert!(plan("zigwasm", "build", &root, &tools).unwrap().args.contains(&"-femit-bin=app.wasm".to_string()));
+        let rustc = "error[E0308]: mismatched types\n  --> src/lib.rs:44:25\n   |\nerror: could not compile `app`\n";
+        assert_eq!(parse_errors("rustwasm", rustc, &root), ["error[E0308]: mismatched types (src/lib.rs:44:25)"]);
+        assert_eq!(parse_errors("zigwasm", "src/main.zig:12:5: error: expected ';'\n", &root), ["src/main.zig:12:5: error: expected ';'"]);
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
     fn long_logs_keep_their_end() {
         let log = (0..5000).map(|i| format!("line {i}\n")).collect::<String>();
         let t = tail(&log, 1000);
@@ -1642,6 +2097,60 @@ mod tests {
         let dir = PathBuf::from(std::env::var("VIBE_STARTER_DIR").expect("VIBE_STARTER_DIR"));
         for k in KINDS {
             scaffold(k, "Starter", &dir.join(k), &[]).unwrap();
+        }
+    }
+
+    /// What this Mac actually has. `cargo test --lib detect_this_mac -- --ignored --nocapture`
+    #[test]
+    #[ignore]
+    fn detect_this_mac() {
+        for t in detect() {
+            println!("{:10} {:5} {:28} {}", t.id, t.found, t.version, if t.found { &t.path } else { &t.install });
+        }
+    }
+
+    /// Runs the installed Godot on the starter: clean, then with a planted error.
+    #[tokio::test]
+    #[ignore]
+    async fn check_with_the_real_godot() {
+        let tools = detect();
+        let root = scratch();
+        scaffold("godot", "Check", &root, &tools).unwrap();
+        let p = plan("godot", "check", &root, &tools).unwrap();
+        let clean = run("godot", &p).await.unwrap();
+        assert!(clean.ok, "{:?}\n{}", clean.errors, clean.log);
+        let gd = fs::read_to_string(root.join("player.gd")).unwrap().replace("* speed *", "* spede *");
+        fs::write(root.join("player.gd"), gd).unwrap();
+        let broken = run("godot", &p).await.unwrap();
+        println!("{:#?}", broken.errors);
+        assert!(!broken.ok && broken.errors.iter().any(|e| e.contains("spede") && e.contains("player.gd:")));
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    /// Builds the Rust WebAssembly starter with the installed toolchain.
+    #[tokio::test]
+    #[ignore]
+    async fn build_rust_wasm_for_real() {
+        let tools = detect();
+        let root = scratch();
+        scaffold("rustwasm", "Life", &root, &tools).unwrap();
+        let p = plan("rustwasm", "build", &root, &tools).unwrap();
+        let out = run("rustwasm", &p).await.unwrap();
+        println!("{:?} {:.1}s", out.errors, out.seconds);
+        assert!(out.ok, "{}", out.log);
+        let wasm = fs::read(root.join("app.wasm")).unwrap();
+        assert_eq!(&wasm[..4], b"\0asm");
+        println!("app.wasm: {} bytes", wasm.len());
+        // A compile error comes back with its location.
+        let src = fs::read_to_string(root.join("src/lib.rs")).unwrap().replace("let mut alive = 0u32;", "let mut alive = 0u32; let oops: u8 = \"x\";");
+        fs::write(root.join("src/lib.rs"), src).unwrap();
+        let bad = run("rustwasm", &p).await.unwrap();
+        println!("{:#?}", bad.errors);
+        assert!(!bad.ok && bad.errors.iter().any(|e| e.contains("src/lib.rs:")));
+        if let Ok(dir) = std::env::var("VIBE_KEEP") {
+            let _ = fs::rename(&root, dir);
+        } else {
+            fs::remove_dir_all(root).unwrap();
         }
     }
 

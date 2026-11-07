@@ -184,7 +184,7 @@ pub fn is_text_lang(l: &str) -> bool {
 /// model should read or an audit should judge.
 pub fn is_generated(path: &str) -> bool {
     const DIRS: &[&str] = &["vendor/three/", "build/", "Library/", "Temp/", "Logs/", "obj/", "Intermediate/",
-                            "Saved/", "Binaries/", "DerivedDataCache/", ".godot/"];
+                            "Saved/", "Binaries/", "DerivedDataCache/", ".godot/", "target/", "zig-out/", ".zig-cache/"];
     DIRS.iter().any(|d| path.starts_with(d))
 }
 

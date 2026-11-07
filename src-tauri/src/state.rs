@@ -161,6 +161,8 @@ pub struct Settings {
     #[serde(default = "live_mode")]
     pub apply_mode: String,
     pub onboarded: bool,
+    /// The first-run Setup (engines, tools, languages) was shown or skipped.
+    pub setup_seen: bool,
     pub app_store_ready_checks: bool,
     pub last_project: Option<String>,
     /// Everything the Appearance panel controls: theme tokens, layout, fonts,
@@ -198,6 +200,7 @@ impl Default for Settings {
             apply_mode: live_mode(),
             heal: heal_ask(),
             onboarded: false,
+            setup_seen: false,
             app_store_ready_checks: true,
             last_project: None,
             ui: serde_json::Value::Null,

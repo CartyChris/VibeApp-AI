@@ -197,6 +197,9 @@ pub fn resolve_base(route: &str) -> String {
             return r.base_url;
         }
     }
+    if let Some(e) = crate::endpoints::for_route(route) {
+        return e.base_url;
+    }
     base_url(route).to_string()
 }
 
@@ -204,6 +207,7 @@ pub fn resolve_base(route: &str) -> String {
 /// real API key would leak it to whatever is listening on that port.
 pub fn is_local(route: &str) -> bool {
     route.starts_with("local:")
+        || (route.starts_with("custom:") && crate::endpoints::for_route(route).is_some_and(|e| e.is_local()))
 }
 
 pub fn base_url(route: &str) -> &'static str {
@@ -228,6 +232,9 @@ pub fn wire_model(route: &str, model: &str) -> String {
         return crate::local::split_id(model)
             .map(|(_, m)| m)
             .unwrap_or_else(|| model.to_string());
+    }
+    if route.starts_with("custom:") {
+        return crate::endpoints::wire_model(route, model);
     }
     match route {
         "openrouter" => model.to_string(),
@@ -1320,7 +1327,7 @@ pub async fn test_key(http: &reqwest::Client, route: &str, key: &str) -> Result<
             }
         }
         _ => {
-            let url = format!("{}/models", base_url(route));
+            let url = format!("{}/models", resolve_base(route));
             let r = auth_headers(http.get(&url), route, key)
                 .timeout(std::time::Duration::from_secs(20))
                 .send()
