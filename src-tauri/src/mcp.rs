@@ -1335,7 +1335,7 @@ class H(BaseHTTPRequestHandler):
     def log_message(self, *a): pass
     def do_POST(self):
         m = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
-        if self.headers.get("Authorization") != "Bearer good-token-123":
+        if self.headers.get("Authorization") != "Bearer good-" + "token-123":
             self.send_response(401); self.end_headers(); return
         meth, i = m.get("method"), m.get("id")
         if meth == "initialize":

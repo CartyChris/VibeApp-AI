@@ -39,8 +39,38 @@ def unregistered_commands():
             for c in defined if c not in registered]
 
 
+# Shapes that GitHub's secret scanning and push protection recognise. The repo
+# is public: even a made-up test key in this shape raises an alert, so test
+# fixtures are split with concat!() and real keys live only in the Keychain.
+KEY_SHAPES = re.compile(
+    r"(sk-[A-Za-z0-9_-]{12,}|AIza[0-9A-Za-z_-]{20,}|gh[pousr]_[A-Za-z0-9]{20,}"
+    r"|xox[abpr]-[A-Za-z0-9-]{10,}|AKIA[0-9A-Z]{16}|BEGIN [A-Z ]*PRIVATE KEY"
+    r"|sk_(?:live|test)_[A-Za-z0-9]{10,}|eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,})")
+
+
+def key_shaped_strings():
+    try:
+        files = subprocess.run(["git", "ls-files"], cwd=ROOT, capture_output=True,
+                               text=True).stdout.split()
+    except OSError:
+        return []
+    out = []
+    for f in files:
+        path = os.path.join(ROOT, f)
+        if f.endswith((".png", ".icns", ".ico", ".lock")) or not os.path.isfile(path):
+            continue
+        try:
+            text = open(path, encoding="utf-8").read()
+        except (UnicodeDecodeError, OSError):
+            continue
+        for n, line in enumerate(text.splitlines(), 1):
+            if KEY_SHAPES.search(line):
+                out.append(f"{f}:{n}: a key-shaped string — split it with concat!() or remove it")
+    return out
+
+
 def invariant_greps():
-    problems = []
+    problems = key_shaped_strings()
     css = open(os.path.join(ROOT, "src/app.css")).read()
     for n, line in enumerate(css.splitlines(), 1):
         if re.match(r"\s*(color|background|border-color)\s*:\s*#[0-9a-fA-F]{3,8}", line):
