@@ -82,5 +82,5 @@ export function icon(name) {
 /** The icon for a kind of project. */
 export function kindIcon(kind) {
   return { mobile: 'phone', game: 'game', web: 'net', tool: 'tool', site: 'file',
-    game3d: 'cube', godot: 'game', unity: 'box', unreal: 'bolt', vork: 'lens' }[kind] || 'spark';
+    game3d: 'cube', godot: 'game', unity: 'box', unreal: 'bolt', vork: 'lens', rustwasm: 'chip', zigwasm: 'bolt' }[kind] || 'spark';
 }

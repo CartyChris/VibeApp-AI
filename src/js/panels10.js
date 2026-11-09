@@ -10,8 +10,8 @@ import { registerPreset, apply as applyTheme } from './theme.js';
 
 const reg = p => { PANELS.push(p); return p; };
 
-const ENGINE_NAMES = { game3d: 'three.js', godot: 'Godot', unity: 'Unity', unreal: 'Unreal Engine', vork: 'vork' };
-const ENGINE_TOOL = { godot: 'godot', unity: 'unity', unreal: 'unreal', vork: 'vork' };
+const ENGINE_NAMES = { game3d: 'three.js', godot: 'Godot', unity: 'Unity', unreal: 'Unreal Engine', vork: 'vork', rustwasm: 'Rust + WebAssembly', zigwasm: 'Zig + WebAssembly' };
+const ENGINE_TOOL = { godot: 'godot', unity: 'unity', unreal: 'unreal', vork: 'vork', rustwasm: 'rust', zigwasm: 'zig' };
 
 /** Put text in the composer for the user to read and send. */
 function compose(text) {

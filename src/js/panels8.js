@@ -3,7 +3,7 @@
 
 import { el, clear, call, guard, ok, err, toast, listen, latest, money, tokens, bytes,
          askConfirm } from './api.js';
-import { S, on, emit, refreshFiles } from './store.js';
+import { S, on, emit, refreshFiles, previewBase } from './store.js';
 import { PANELS, shell, emptyState, icon } from './panels.js';
 
 const reg = p => { PANELS.push(p); return p; };
@@ -185,7 +185,7 @@ reg({
           preview.textContent = 'Stop preview';
           stage.append(el('iframe', {
             title: `Preview of ${title}`,
-            src: `vibeapp://${S.project.id}/__arena/${run.id}/${sl.slot}/${sl.entry || 'index.html'}?t=${Date.now()}`,
+            src: `${previewBase()}/__arena/${run.id}/${sl.slot}/${sl.entry || 'index.html'}?t=${Date.now()}`,
             sandbox: 'allow-scripts allow-forms allow-modals allow-popups allow-same-origin allow-pointer-lock',
           }));
         },

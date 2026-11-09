@@ -104,6 +104,30 @@ reg({
         }
         body.append(grid);
       }
+
+      // ---- how the chosen language reaches each device ----
+      if (current.language) {
+        const rows = (await guard(() => call('stack_platforms', { lang: current.language }))) || [];
+        if (stale()) return;
+        if (rows.length) {
+          body.append(el('div', { class: 'section-label', text: 'How this language reaches each device' }));
+          body.append(el('div', { class: 'platform-grid' }, ...rows.map(([plat, lvl, how]) => el('div', { class: `plat ${lvl}`, title: how || '' },
+            el('b', { text: plat }), el('span', { text: lvl === 'native' ? 'Native' : lvl === 'via' ? 'Through a layer' : 'Not possible' }),
+            how ? el('small', { text: how }) : null))));
+        }
+      }
+
+      // ---- hard rules ----
+      body.append(el('div', { class: 'section-label', text: 'Hard rules' }));
+      const rules = el('textarea', { class: 'field', rows: 4, placeholder: 'One per line, e.g.\nAll game logic in Zig, compiled to WebAssembly\nNo JavaScript frameworks\nRust edition 2024, no unsafe' });
+      rules.value = current.rules || '';
+      rules.onchange = async () => {
+        const next = { ...sel(), rules: rules.value };
+        const clean = await guard(() => call('stack_sanitize', { selection: next }), 'Saving rules');
+        await updateProject({ stack: clean || next });
+        ok('Hard rules saved — every build in this project must follow them.');
+      };
+      body.append(el('p', { class: 'hint', text: 'The AI is told these are never to be broken, on every request in this project.' }), rules);
     });
 
     resetBtn.onclick = async () => {

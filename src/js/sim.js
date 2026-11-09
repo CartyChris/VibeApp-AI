@@ -79,7 +79,18 @@ export function buildDevice(opts) {
   if (showChrome && dev.cutout === 'notch') screen.append(el('div', { class: 'notch' }));
   if (showChrome && dev.cutout === 'punch') screen.append(el('div', { class: 'punch' }));
 
-  if (statusBar && showChrome && dev.cutout !== 'ipad') {
+  const isAndroid = dev.family === 'Android';
+  // Android: a Material status bar, and either gesture navigation (Pixel) or
+  // Samsung's three buttons. Back reaches the app through the runtime shim.
+  const back = () => { try { iframe.contentWindow.postMessage({ __vibeCmd: 'back' }, '*'); } catch {} };
+  if (isAndroid && statusBar && showChrome) {
+    screen.append(el('div', { class: 'status-bar android' },
+      el('span', { text: '12:30' }),
+      el('span', { class: 'sb-right', html:
+        '<svg width="14" height="12" viewBox="0 0 14 12"><path d="M7 11.5 0.5 3.4a10.4 10.4 0 0 1 13 0z" fill="#fff"/></svg>' +
+        '<svg width="12" height="12" viewBox="0 0 12 12"><path d="M11.5 0.5v11h-11z" fill="#fff"/></svg>' +
+        '<svg width="8" height="13" viewBox="0 0 8 13"><rect x="2.5" y="0" width="3" height="1.6" rx=".5" fill="#fff"/><rect x=".5" y="1.5" width="7" height="11" rx="1.3" fill="#fff"/></svg>' })));
+  } else if (statusBar && showChrome && dev.cutout !== 'ipad') {
     screen.append(el('div', { class: 'status-bar' },
       el('span', { text: '9:41' }),
       el('span', { class: 'sb-right', html:
@@ -89,7 +100,18 @@ export function buildDevice(opts) {
       })));
   }
 
-  if (showChrome && dev.safe_p[2] > 0) screen.append(el('div', { class: 'home-bar' }));
+  if (isAndroid && showChrome) {
+    if (dev.id.startsWith('galaxy')) {
+      const btn = (label, svg, fn) => el('button', { class: 'nav-btn', 'aria-label': label, title: label, html: svg, onclick: fn });
+      screen.append(el('div', { class: 'nav-bar' },
+        btn('Recent apps', '<svg width="18" height="16" viewBox="0 0 18 16"><path d="M3 2v12M9 2v12M15 2v12" stroke="#fff" stroke-width="1.6" fill="none"/></svg>', () => {}),
+        btn('Home', '<svg width="18" height="18" viewBox="0 0 18 18"><rect x="2" y="2" width="14" height="14" rx="4" stroke="#fff" stroke-width="1.6" fill="none"/></svg>', () => {}),
+        btn('Back', '<svg width="18" height="18" viewBox="0 0 18 18"><path d="M12 2 5 9l7 7" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>', back)));
+    } else {
+      screen.append(el('div', { class: 'home-bar android' }),
+        el('button', { class: 'back-edge', 'aria-label': 'Back gesture', title: 'Back (swipe from the edge)', onclick: back }));
+    }
+  } else if (showChrome && dev.safe_p[2] > 0) screen.append(el('div', { class: 'home-bar' }));
 
   if (safeOverlay) {
     const [t, r, b, l] = insets(dev, orientation);

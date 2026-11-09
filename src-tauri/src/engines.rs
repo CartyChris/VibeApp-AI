@@ -693,6 +693,10 @@ pub fn vendor_three(root: &Path) -> Result<Vec<String>> {
             continue;
         }
         let name = f.name().to_string();
+        // The archive also carries the starter's hero; only three/ is vendored.
+        if !name.starts_with("three/") {
+            continue;
+        }
         let rel = format!("vendor/{name}");
         let dst = crate::state::safe_join(root, &rel)?;
         if dst.exists() {
@@ -707,6 +711,21 @@ pub fn vendor_three(root: &Path) -> Result<Vec<String>> {
         written.push(rel);
     }
     Ok(written)
+}
+
+/// The starter's animated hero (RobotExpressive, CC0) into assets/characters.
+pub fn starter_hero(root: &Path) -> Result<Vec<String>> {
+    let mut z = zip::ZipArchive::new(std::io::Cursor::new(THREE_ZIP))?;
+    let mut buf = Vec::new();
+    z.by_name("models/RobotExpressive.glb")?.read_to_end(&mut buf)?;
+    let mut out = Vec::new();
+    let dst = root.join("assets/characters/robot.glb");
+    if !dst.exists() {
+        fs::create_dir_all(dst.parent().unwrap_or(root))?;
+        fs::write(&dst, buf)?;
+        out.push("assets/characters/robot.glb".to_string());
+    }
+    Ok(out)
 }
 
 /// A name every engine accepts as an identifier: letters and digits, not
@@ -751,7 +770,10 @@ pub fn scaffold(kind: &str, name: &str, root: &Path, tools: &[Tool]) -> Result<V
             write(root, "index.html", &THREE_INDEX.replace("{{NAME}}", &esc_html(name)), &mut out)?;
             write(root, "game.js", THREE_GAME, &mut out)?;
             write(root, "assets/README.md", THREE_ASSETS_README, &mut out)?;
+            write(root, "assets/characters/characters.json", "[\n  { \"name\": \"Robot\", \"file\": \"robot.glb\" }\n]\n", &mut out)?;
+            write(root, "assets/CREDITS.md", "# Credits\n\n- Robot (assets/characters/robot.glb) — RobotExpressive by Tomás Laulhé (Quaternius), CC0 1.0, from the three.js examples.\n", &mut out)?;
             out.extend(vendor_three(root)?);
+            out.extend(starter_hero(root)?);
         }
         "godot" => {
             write(root, "project.godot", &GODOT_PROJECT.replace("{{NAME}}", &name.replace('"', "'")), &mut out)?;
@@ -843,7 +865,8 @@ pub fn prompt_block(kind: &str, tools: &[Tool], vork_help: Option<&str>) -> Stri
     let body = match kind {
         "game3d" => r#"# This project: a three.js 3D game
 
-- three.js r186 is in `vendor/three/` and mapped by the import map in index.html: `import * as THREE from 'three'` and `import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'`. Never load three.js or any addon from a CDN, and never edit or rewrite files in vendor/three. Available addons: loaders/GLTFLoader.js, controls/OrbitControls.js, utils/BufferGeometryUtils.js, utils/SkeletonUtils.js. For anything else, write it yourself or ask the user to add the file.
+- three.js r186 is in `vendor/three/` and mapped by the import map in index.html: `import * as THREE from 'three'` and `import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'`. Never load three.js or any addon from a CDN, and never edit or rewrite files in vendor/three. Available addons: loaders/GLTFLoader.js, controls/OrbitControls.js, environments/RoomEnvironment.js, utils/BufferGeometryUtils.js, utils/SkeletonUtils.js.
+- Heroes are listed in `assets/characters/characters.json` and loaded by game.js; the starter normalises each to 1.7 m and animates rigged ones with their Idle/Run/Jump clips. For anything else, write it yourself or ask the user to add the file.
 - Models go in `assets/` as .glb (glTF binary). Load with GLTFLoader; clone characters with SkeletonUtils.clone so each keeps its own skeleton; play clips with AnimationMixer, cross-fading between them.
 - Phone budget: device pixel ratio capped at 2, under ~150 draw calls and ~300k triangles on screen, one shadow-casting directional light with a 1024–2048 map, InstancedMesh for repeated props, no per-frame allocation, dispose geometries/materials/textures you remove.
 - Use `renderer.outputColorSpace = THREE.SRGBColorSpace` and a tone mapping (ACES or AgX); textures that hold colour are SRGBColorSpace, data textures are not.
@@ -929,192 +952,11 @@ fn tail_head(s: &str, max: usize) -> String {
 // Templates
 // ---------------------------------------------------------------------------
 
-const THREE_INDEX: &str = r##"<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<meta name="theme-color" content="#0b1020">
-<title>{{NAME}}</title>
-<style>
-  html, body { margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none; background: #0b1020; color: #fff;
-    font: 600 15px/1.3 -apple-system, system-ui, sans-serif; }
-  #game { position: fixed; inset: 0; width: 100%; height: 100%; height: 100dvh; display: block; touch-action: none; }
-  #hud { position: fixed; top: max(12px, env(safe-area-inset-top)); left: max(14px, env(safe-area-inset-left));
-    pointer-events: none; text-shadow: 0 1px 3px rgba(0, 0, 0, .6); }
-  #stick { position: fixed; left: max(24px, env(safe-area-inset-left)); bottom: max(24px, env(safe-area-inset-bottom));
-    width: 120px; height: 120px; border-radius: 50%; background: rgba(255, 255, 255, .08); border: 2px solid rgba(255, 255, 255, .25);
-    touch-action: none; display: none; }
-  #knob { position: absolute; left: 35px; top: 35px; width: 50px; height: 50px; border-radius: 50%; background: rgba(255, 255, 255, .45); }
-  #jump { position: fixed; right: max(24px, env(safe-area-inset-right)); bottom: max(36px, env(safe-area-inset-bottom));
-    width: 84px; height: 84px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .35); background: rgba(80, 200, 120, .35);
-    color: #fff; font: inherit; touch-action: none; display: none; }
-  @media (pointer: coarse) { #stick, #jump { display: block; } }
-</style>
-<script type="importmap">
-{ "imports": { "three": "./vendor/three/three.module.js", "three/addons/": "./vendor/three/addons/" } }
-</script>
-</head>
-<body>
-<canvas id="game" aria-label="3D game view"></canvas>
-<div id="hud" role="status" aria-live="polite">Gems 0 / 0</div>
-<div id="stick" aria-hidden="true"><div id="knob"></div></div>
-<button id="jump" aria-label="Jump">Jump</button>
-<script type="module" src="./game.js"></script>
-</body>
-</html>
-"##;
+const THREE_INDEX: &str = include_str!("../assets/starter-3d/index.html");
 
-const THREE_GAME: &str = r#"// A small, complete three.js game: run around, jump, collect every gem.
-// three.js is vendored in ./vendor/three, so this runs offline.
-import * as THREE from 'three';
+const THREE_GAME: &str = include_str!("../assets/starter-3d/game.js");
 
-const canvas = document.getElementById('game');
-const hud = document.getElementById('hud');
-
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
-renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0b1020);
-scene.fog = new THREE.Fog(0x0b1020, 25, 70);
-
-const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 200);
-
-scene.add(new THREE.HemisphereLight(0xbfd4ff, 0x1a1530, 1.1));
-const sun = new THREE.DirectionalLight(0xfff1d6, 2.2);
-sun.position.set(8, 14, 6);
-sun.castShadow = true;
-sun.shadow.mapSize.set(1024, 1024);
-Object.assign(sun.shadow.camera, { left: -20, right: 20, top: 20, bottom: -20, near: 1, far: 50 });
-scene.add(sun, sun.target);
-
-// Ground and a few platforms
-const ground = new THREE.Mesh(new THREE.CircleGeometry(30, 48), new THREE.MeshStandardMaterial({ color: 0x24324f, roughness: 0.9 }));
-ground.rotation.x = -Math.PI / 2;
-ground.receiveShadow = true;
-scene.add(ground);
-
-const platforms = [];
-const platMat = new THREE.MeshStandardMaterial({ color: 0x3b4f7a, roughness: 0.7 });
-for (const [x, y, z, w, d] of [[6, 1, -4, 4, 4], [-7, 2, -8, 5, 3], [0, 3.2, -14, 6, 3], [10, 2.2, -12, 3, 3]]) {
-  const m = new THREE.Mesh(new THREE.BoxGeometry(w, 0.6, d), platMat);
-  m.position.set(x, y - 0.3, z);
-  m.castShadow = m.receiveShadow = true;
-  scene.add(m);
-  platforms.push({ x, z, top: y, hw: w / 2, hd: d / 2 });
-}
-
-// Player: a capsule with a simple follow camera
-const player = new THREE.Mesh(new THREE.CapsuleGeometry(0.45, 0.9, 6, 12), new THREE.MeshStandardMaterial({ color: 0xff7a59, roughness: 0.4 }));
-player.castShadow = true;
-scene.add(player);
-const state = { pos: new THREE.Vector3(0, 0, 4), vel: new THREE.Vector3(), onGround: true, yaw: Math.PI };
-
-// Gems, drawn as one InstancedMesh
-const gemSpots = [[3, 1, 0], [6, 2.2, -4], [-7, 3.2, -8], [0, 4.4, -14], [10, 3.4, -12], [-4, 1, 6], [12, 1, 4], [-12, 1, -2]];
-const gems = new THREE.InstancedMesh(new THREE.OctahedronGeometry(0.4), new THREE.MeshStandardMaterial({ color: 0x5ee7ff, emissive: 0x1a6b80, metalness: 0.3, roughness: 0.2 }), gemSpots.length);
-gems.castShadow = true;
-scene.add(gems);
-const taken = new Array(gemSpots.length).fill(false);
-const tmp = new THREE.Object3D();
-let collected = 0;
-
-// Input: keyboard, plus a touch stick and jump button
-const keys = new Set();
-addEventListener('keydown', e => { keys.add(e.code); if (e.code === 'Space') e.preventDefault(); });
-addEventListener('keyup', e => keys.delete(e.code));
-const stick = document.getElementById('stick');
-const knob = document.getElementById('knob');
-const touch = { x: 0, y: 0, id: null };
-stick.addEventListener('pointerdown', e => { touch.id = e.pointerId; stick.setPointerCapture(e.pointerId); moveStick(e); });
-stick.addEventListener('pointermove', e => { if (e.pointerId === touch.id) moveStick(e); });
-const release = e => { if (e.pointerId !== touch.id) return; touch.id = null; touch.x = touch.y = 0; knob.style.transform = ''; };
-stick.addEventListener('pointerup', release);
-stick.addEventListener('pointercancel', release);
-function moveStick(e) {
-  const r = stick.getBoundingClientRect();
-  let dx = (e.clientX - (r.left + r.width / 2)) / (r.width / 2);
-  let dy = (e.clientY - (r.top + r.height / 2)) / (r.height / 2);
-  const len = Math.hypot(dx, dy);
-  if (len > 1) { dx /= len; dy /= len; }
-  touch.x = dx; touch.y = dy;
-  knob.style.transform = `translate(${dx * 35}px, ${dy * 35}px)`;
-}
-let jumpQueued = false;
-document.getElementById('jump').addEventListener('pointerdown', e => { e.preventDefault(); jumpQueued = true; });
-
-function resize() {
-  const w = innerWidth, h = innerHeight;
-  renderer.setSize(w, h, false);
-  camera.aspect = w / h;
-  camera.updateProjectionMatrix();
-}
-addEventListener('resize', resize);
-resize();
-
-let paused = false;
-document.addEventListener('visibilitychange', () => { paused = document.hidden; clock.getDelta(); });
-
-const clock = new THREE.Clock();
-const camOffset = new THREE.Vector3();
-function step(dt) {
-  let ix = (keys.has('KeyD') || keys.has('ArrowRight') ? 1 : 0) - (keys.has('KeyA') || keys.has('ArrowLeft') ? 1 : 0) + touch.x;
-  let iz = (keys.has('KeyS') || keys.has('ArrowDown') ? 1 : 0) - (keys.has('KeyW') || keys.has('ArrowUp') ? 1 : 0) + touch.y;
-  const len = Math.hypot(ix, iz);
-  if (len > 1) { ix /= len; iz /= len; }
-  const speed = 7;
-  state.vel.x = THREE.MathUtils.damp(state.vel.x, ix * speed, 12, dt);
-  state.vel.z = THREE.MathUtils.damp(state.vel.z, iz * speed, 12, dt);
-  if ((keys.has('Space') || jumpQueued) && state.onGround) { state.vel.y = 8; state.onGround = false; }
-  jumpQueued = false;
-  state.vel.y -= 22 * dt;
-  state.pos.addScaledVector(state.vel, dt);
-
-  // Land on the ground or on a platform top
-  let floor = 0;
-  for (const p of platforms) {
-    if (Math.abs(state.pos.x - p.x) < p.hw && Math.abs(state.pos.z - p.z) < p.hd && state.pos.y >= p.top - 0.35) floor = Math.max(floor, p.top);
-  }
-  if (state.pos.y <= floor) { state.pos.y = floor; state.vel.y = 0; state.onGround = true; }
-  if (state.pos.length() > 29) state.pos.setLength(29);
-  if (len > 0.1) state.yaw = Math.atan2(state.vel.x, state.vel.z);
-
-  player.position.set(state.pos.x, state.pos.y + 0.9, state.pos.z);
-  player.rotation.y = state.yaw;
-
-  const t = clock.elapsedTime;
-  for (let i = 0; i < gemSpots.length; i++) {
-    const [x, y, z] = gemSpots[i];
-    if (!taken[i] && player.position.distanceTo(tmp.position.set(x, y, z)) < 1.1) { taken[i] = true; collected++; }
-    tmp.position.set(x, y + Math.sin(t * 2 + i) * 0.15, z);
-    tmp.rotation.set(0, t * 1.5 + i, 0);
-    tmp.scale.setScalar(taken[i] ? 0 : 1);
-    tmp.updateMatrix();
-    gems.setMatrixAt(i, tmp.matrix);
-  }
-  gems.instanceMatrix.needsUpdate = true;
-  hud.textContent = collected === gemSpots.length ? 'All gems collected!' : `Gems ${collected} / ${gemSpots.length}`;
-
-  camOffset.set(0, 5, 9);
-  camera.position.lerp(camOffset.add(player.position), 1 - Math.exp(-6 * dt));
-  camera.lookAt(player.position.x, player.position.y + 0.8, player.position.z);
-  sun.position.set(player.position.x + 8, 14, player.position.z + 6);
-  sun.target.position.copy(player.position);
-}
-
-renderer.setAnimationLoop(() => {
-  const dt = Math.min(0.05, clock.getDelta());
-  if (!paused) step(dt);
-  renderer.render(scene, camera);
-});
-"#;
-
-const THREE_ASSETS_README: &str = "# Assets\n\nPut 3D models here as `.glb` files and load them with\n`GLTFLoader` from `three/addons/loaders/GLTFLoader.js`.\n\nFree, properly licensed sources: Poly Haven (CC0), Kenney (CC0),\nQuaternius (CC0), the Khronos glTF sample assets. Generated models: connect\nthe Tripo or Meshy MCP server in Tools. Animation: Cascadeur exports FBX/glTF.\n";
+const THREE_ASSETS_README: &str = "# Assets\n\nHeroes: drop a `.glb` into `characters/` and add it to `characters/characters.json`\n(`{ \"name\": \"Knight\", \"file\": \"knight.glb\" }`). Rigged models with Idle / Run / Jump clips\nanimate; static models get a procedural run.\n\nPut other 3D models here as `.glb` files and load them with\n`GLTFLoader` from `three/addons/loaders/GLTFLoader.js`.\n\nFree, properly licensed sources: Poly Haven (CC0), Kenney (CC0),\nQuaternius (CC0), the Khronos glTF sample assets. Generated models: connect\nthe Tripo or Meshy MCP server in Tools. Animation: Cascadeur exports FBX/glTF.\n";
 
 const GODOT_PROJECT: &str = r#"; Engine configuration file.
 ; It's best edited using the editor UI and not directly,
@@ -1870,7 +1712,8 @@ mod tests {
         let root = scratch();
         let written = scaffold("game3d", "Gem <Run>", &root, &[]).unwrap();
         for f in ["index.html", "game.js", "vendor/three/three.module.js", "vendor/three/three.core.js",
-                  "vendor/three/addons/loaders/GLTFLoader.js", "vendor/three/addons/utils/SkeletonUtils.js", "vendor/three/LICENSE"] {
+                  "vendor/three/addons/loaders/GLTFLoader.js", "vendor/three/addons/utils/SkeletonUtils.js", "vendor/three/LICENSE",
+                  "vendor/three/addons/environments/RoomEnvironment.js", "assets/characters/robot.glb", "assets/characters/characters.json"] {
             assert!(written.contains(&f.to_string()), "{f} missing from {written:?}");
         }
         let html = fs::read_to_string(root.join("index.html")).unwrap();
@@ -1887,6 +1730,9 @@ mod tests {
             }
         }
         // The starter passes the audits a phone game is held to.
+        assert!(!written.iter().any(|f| f.starts_with("vendor/models")), "the hero is not vendored code");
+        let glb = fs::read(root.join("assets/characters/robot.glb")).unwrap();
+        assert_eq!(&glb[..4], b"glTF");
         let own: Vec<(String, String)> = files(&root).into_iter().filter(|(p, _)| !p.starts_with("vendor/")).collect();
         let phone = crate::adapt::audit_many(&own);
         assert!(phone.is_empty(), "{phone:#?}");

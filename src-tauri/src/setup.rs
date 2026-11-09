@@ -49,6 +49,7 @@ fn catalogue() -> Vec<(Item, Probe)> {
         (it("vork", "vork", "Game engines & 3D", "Headless ray-traced rendering for agents (Apple silicon, macOS 26+).", "", "https://github.com/voyager-so/vork/releases", 0.3, false), Path(".local/bin/vork")),
         (it("cascadeur", "Cascadeur", "Game engines & 3D", "Physics-assisted character animation; exchange FBX/glTF. Official site only.", "", "https://cascadeur.com/download", 1.0, true), App("Cascadeur.app")),
 
+        (it("android-studio", "Android Studio", "Simulators & devices", "The Android Emulator and SDK: run your app on a virtual Pixel or Galaxy, and build APKs. Create a virtual device in its Device Manager (6–10 GB with a system image).", "cask:android-studio", "https://developer.android.com/studio", 3.0, false), App("Android Studio.app")),
         (it("node", "Node.js", "Tool runtimes (for MCP servers)", "Runs npx-based MCP servers: Playwright, Godot, Context7, Figma, filesystem.", "formula:node", "https://nodejs.org/", 0.2, false), Bin("node")),
         (it("uv", "uv", "Tool runtimes (for MCP servers)", "Runs uvx-based MCP servers: Blender, Unity, Fetch, Tripo.", "formula:uv", "https://docs.astral.sh/uv/", 0.05, false), Bin("uvx")),
 

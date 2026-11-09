@@ -159,10 +159,16 @@ export async function updateProject(patch) {
 
 /* ------------------------------- preview -------------------------------- */
 
+/** Where the preview protocol lives: `vibeapp://<id>` on macOS and Linux,
+ *  `http://vibeapp.localhost/<id>` on Windows (WebView2's form). */
+export function previewBase(id = S.project?.id) {
+  return /Windows/.test(navigator.userAgent) ? `http://vibeapp.localhost/${id}` : `vibeapp://${id}`;
+}
+
 export function previewURL(bust = true) {
   if (!S.project) return '';
   const entry = S.project.entry || 'index.html';
-  return `vibeapp://${S.project.id}/${entry}${bust ? `?t=${Date.now()}` : ''}`;
+  return `${previewBase()}/${entry}${bust ? `?t=${Date.now()}` : ''}`;
 }
 
 export function reloadPreview() { emit('reload'); }

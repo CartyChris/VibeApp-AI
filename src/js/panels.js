@@ -55,8 +55,10 @@ reg({
     const reloadBtn = el('button', { class: 'icon-btn', title: 'Reload preview (⌘R)', html:
       '<svg viewBox="0 0 20 20" width="17" height="17"><path d="M16 10a6 6 0 1 1-1.8-4.2M16 3v3.5h-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' });
     const extBtn = el('button', { class: 'btn sm', text: 'Open folder' });
+    const droidBtn = el('button', { class: 'btn sm', text: 'Android Emulator', title: 'Open this app in the real Android Emulator',
+      onclick: () => emit('android-emulator') });
 
-    const { root, head, body } = shell('Preview', '', [devSel, orient, chromeBtn, safeBtn, reloadBtn, extBtn], false);
+    const { root, head, body } = shell('Preview', '', [devSel, orient, chromeBtn, safeBtn, reloadBtn, droidBtn, extBtn], false);
     tools.push(devSel);
 
     const stage = el('div', { id: 'stage' });
@@ -73,7 +75,8 @@ reg({
       const dev = deviceById(S.settings.device_id);
       const o = S.settings.orientation || 'portrait';
       const [t, r, b, l] = insets(dev, o);
-      const q = `sat=${t}&sar=${r}&sab=${b}&sal=${l}`;
+      const q = `sat=${t}&sar=${r}&sab=${b}&sal=${l}` + (dev.family === 'Android' ? '&os=android' : '');
+      droidBtn.hidden = dev.family !== 'Android';
       const src = previewURL(true) + (previewURL(true).includes('?') ? '&' : '?') + q;
       iframe = renderStage(stage, {
         dev, orientation: o, src,
@@ -157,7 +160,7 @@ reg({
       clear(wall);
       if (!S.project) { wall.append(emptyState('ruler', 'No project open', 'Open a project to see it on every device.')); return; }
       const both = bothBtn.querySelector('input').checked;
-      const list = S.devices.filter(d => d.family === 'iPhone');
+      const list = S.devices.filter(d => d.family === 'iPhone' || d.family === 'Android');
       const orients = both ? ['portrait', 'landscape'] : [S.settings.orientation || 'portrait'];
 
       for (const d of list) {
@@ -165,7 +168,7 @@ reg({
           const size = screenSize(d, o);
           const scale = Math.min(1, 190 / size.w, 400 / size.h);
           const [t, r, b, l] = insets(d, o);
-          const src = previewURL(true) + `&sat=${t}&sar=${r}&sab=${b}&sal=${l}`;
+          const src = previewURL(true) + `&sat=${t}&sar=${r}&sab=${b}&sal=${l}` + (d.family === 'Android' ? '&os=android' : '');
           const built = buildDevice({ dev: d, orientation: o, chrome: true, statusBar: true, src, interactive: false });
           built.frame.style.transform = `scale(${scale})`;
           built.frame.style.transformOrigin = 'top left';

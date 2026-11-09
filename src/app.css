@@ -1291,3 +1291,37 @@ table.grid tr:hover td { background: var(--hover); }
 .engine-tool .hint { overflow-wrap: anywhere; }
 .engine-tool .dot { width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; background: var(--line); flex: none; }
 .engine-tool .dot.on { background: var(--ok); }
+
+/* ---- Android device chrome (physical-object colours, like the iPhone's) ---- */
+.status-bar.android { font-family: Roboto, "Google Sans", system-ui, sans-serif; font-weight: 500; letter-spacing: .2px; padding: 0 22px; }
+.status-bar.android .sb-right { gap: 6px; }
+.home-bar.android { width: 30%; height: 4px; bottom: 7px; background: rgba(255,255,255,.55); }
+.nav-bar { position: absolute; z-index: 5; left: 0; right: 0; bottom: 0; height: 48px; display: flex; justify-content: space-around; align-items: center; background: rgba(0,0,0,.35); }
+.nav-btn { width: 64px; height: 40px; border: 0; background: transparent; border-radius: 20px; cursor: pointer; display: grid; place-items: center; }
+.nav-btn:hover { background: rgba(255,255,255,.12); }
+.back-edge { position: absolute; z-index: 5; left: 0; top: 30%; width: 14px; height: 40%; border: 0; background: transparent; cursor: w-resize; border-radius: 0 8px 8px 0; }
+.back-edge:hover { background: linear-gradient(90deg, rgba(255,255,255,.22), transparent); }
+.device.landscape .nav-bar { display: none; }
+
+/* ---- Asset Vault and Feature Kits --------------------------------------- */
+.vault-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 10px; }
+.vault-grid .card + .card { margin-top: 0; }
+.vault-card { display: grid; gap: 5px; align-content: start; }
+.vault-thumb { height: 110px; border-radius: 9px; display: grid; place-items: center; overflow: hidden; color: var(--ink-3);
+  background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--accent) 18%, var(--panel-2) 82%), var(--panel)); }
+.vault-thumb svg { width: 40px; height: 40px; }
+.vault-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.kit-files { max-height: 180px; overflow: auto; padding: 4px 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.kit-files label { width: 100%; }
+
+/* ---- Stack: platform reach ---------------------------------------------- */
+.platform-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.plat { display: grid; gap: 2px; padding: 9px 11px; border-radius: var(--r-sm, 8px); border: 1px solid var(--line-soft); background: var(--panel); }
+.plat span { font-size: 11.5px; }
+.plat small { color: var(--ink-3); font-size: 10.5px; line-height: 1.35; }
+.plat.native span { color: var(--ok); }
+.plat.via span { color: var(--accent); }
+.plat.no { opacity: .6; }
+.plat.no span { color: var(--err); }
+
+.engine-tool .pill { margin-left: 6px; }

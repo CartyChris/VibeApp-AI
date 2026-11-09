@@ -2,6 +2,7 @@
 //! apps with AI.
 
 pub mod a11y;
+pub mod android;
 pub mod adapt;
 pub mod endpoints;
 pub mod engines;
@@ -2490,6 +2491,31 @@ async fn endpoint_models(s: State<'_, AppState>, id: String) -> R<Vec<String>> {
 }
 
 // ---------------------------------------------------------------------------
+// Android Emulator
+// ---------------------------------------------------------------------------
+
+#[tauri::command]
+fn android_status() -> android::Status {
+    android::status()
+}
+
+#[tauri::command]
+fn android_boot(avd: String) -> R<()> {
+    e(android::boot(&avd))
+}
+
+/// Serve the project on loopback and open it in a running emulator.
+#[tauri::command]
+async fn android_open(id: String, serial: String) -> R<String> {
+    let proj = e(project::load(&id))?;
+    let entry = if proj.entry.is_empty() { "index.html".to_string() } else { proj.entry.clone() };
+    let port = e(android::serve_dir(project::live_dir(&id), entry.clone()).await)?;
+    let url = format!("http://10.0.2.2:{port}/{}", entry.trim_start_matches('/'));
+    e(android::open_url(&serial, &url))?;
+    Ok(url)
+}
+
+// ---------------------------------------------------------------------------
 // First-run Setup
 // ---------------------------------------------------------------------------
 
@@ -2625,6 +2651,11 @@ fn kit_remove(kit: String) -> R<()> {
 // ---------------------------------------------------------------------------
 // Game engines and 3D tools
 // ---------------------------------------------------------------------------
+
+#[tauri::command]
+fn stack_platforms(lang: String) -> Vec<(String, String, String)> {
+    stack::platforms(&lang).into_iter().map(|(a, b, c)| (a.to_string(), b.to_string(), c.to_string())).collect()
+}
 
 #[tauri::command]
 fn engines_detect() -> Vec<engines::Tool> {
@@ -3795,8 +3826,7 @@ pub fn run() {
         // vibeapp://<project-id>/<path> serves a project's files to the preview.
         .register_uri_scheme_protocol("vibeapp", |_ctx, request| {
             let uri = request.uri();
-            let pid = uri.host().unwrap_or("").to_string();
-            let path = uri.path().to_string();
+            let (pid, path) = preview::split_uri(uri.host().unwrap_or(""), uri.path());
             let query = uri.query().unwrap_or("").to_string();
             let (mime, body) = preview::serve_with_query(&pid, &path, &query);
             tauri::http::Response::builder()
@@ -3859,6 +3889,8 @@ pub fn run() {
             vault_update, vault_remove, kits_list, kit_create, kit_file, kit_use, kit_update, kit_remove,
             endpoints_list, endpoint_presets, endpoint_save, endpoint_remove, endpoint_models,
             setup_state, setup_install, setup_add_no_install_tools,
+            android_status, android_boot, android_open,
+            stack_platforms,
         ])
         .run(tauri::generate_context!())
         .expect("error while running VibeApp AI");

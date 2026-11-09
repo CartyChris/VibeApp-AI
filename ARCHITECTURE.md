@@ -12,7 +12,7 @@ no framework. ~7 MB binary.
 ## 0. Ground rules
 
 1. **Run the tests before and after every change.** `cd src-tauri && cargo test --lib`
-   — 621 tests, all passing. If a test fails after your change, you broke
+   — 641 tests, all passing. If a test fails after your change, you broke
    something, or the test encodes a rule you did not know about. Read the test
    name; they are written as sentences describing the rule.
 2. **Never delete or weaken a test to make it pass.** Several tests exist
@@ -54,6 +54,11 @@ VibeAppAI/
 │   │   ├── adapt.rs            Phone & tablet readiness audit (hover-only, fixed widths, mouse/keys only…)
 │   │   ├── engines.rs          3D + engines: detect Godot/Unity/Unreal/Blender/vork/Cascadeur, starters, actions, errors
 │   │   ├── plugins.rs          Plug-ins: skills + MCP servers + commands + themes, VibeApp and Claude Code layouts
+│   │   ├── android.rs          Real Android Emulator: SDK/adb detection, boot an AVD, loopback server + adb open at 10.0.2.2
+│   │   ├── setup.rs            First-run Setup catalogue: detect, brew install by catalogue id only, disk-space reserve
+│   │   ├── endpoints.rs        Custom OpenAI-compatible providers (`custom:<id>` routes), presets incl. uncensored
+│   │   ├── library.rs          Asset Vault (models/textures/…) and Feature Kits (reusable portions of apps)
+│   │   ├── builtin_tools.rs    The in-process `vibeapp` MCP server: Poly Haven, public fetch, vault/kit use
 │   │   ├── suggest.rs          Prompt suggestions + the trace log they learn from
 │   │   ├── swarm.rs            Agent swarms: roles, gates, and blind identity
 │   │   ├── runner.rs           Drive one model until its reply is really finished
@@ -73,7 +78,8 @@ VibeAppAI/
 │   │   ├── vault.rs            macOS Keychain
 │   │   └── state.rs            Settings, paths, path-traversal guard
 │   ├── assets/models_seed.json 94 curated models shipped in the binary
-│   ├── assets/three-r186.zip   three.js r186 (npm sha512-checked), unpacked into 3D projects' vendor/three
+│   ├── assets/three-r186.zip   three.js r186 (npm sha512-checked) + models/RobotExpressive.glb (CC0)
+│   ├── assets/starter-3d/      The "Sky Islands" 3D starter (index.html, game.js), include_str!'d
 │   └── tauri.conf.json
 ├── src/                        Frontend — served directly, no build step
 │   ├── index.html
@@ -93,6 +99,7 @@ VibeAppAI/
 │       ├── panels8.js          Context inspector, Model Arena
 │       ├── panels9.js          Tools (MCP servers), tool-call approval sheet, Remake
 │       ├── panels10.js         Engine panel, Plug-ins panel, plug-in themes and slash commands
+│       ├── panels11.js         Setup, Asset Vault (+ Free 3D assets), Feature Kits, AI Providers, Android Emulator
 │       ├── palette.js          Command palette (⌘⇧P)
 │       ├── icons.js            Every symbol in the interface
 │       ├── theme.js            Appearance token engine
@@ -450,6 +457,26 @@ Violating these is a bug even if tests pass.
 - The device simulator's screen, status-bar text and bezel are *physical object*
   colours and deliberately do **not** follow the app theme.
 
+**1.3.0 invariants**
+- Android: `android::open_url` accepts only `http://10.0.2.2:<port>` with no shell
+  metacharacters; `boot` accepts only `[A-Za-z0-9_.-]` names. The project server binds
+  127.0.0.1 only, serves GET/HEAD only, and every path goes through `safe_join`.
+- Setup installs by catalogue id only (`install_args`); the page never names a package.
+  An install that would leave under `RESERVE_GB` (3 GB) free is refused before it starts.
+  Nothing in Setup starts or loads a local model.
+- `custom:<id>` keys live in the Keychain under the route name; a localhost endpoint is
+  never sent a key.
+- Vault and Kit use never overwrite a project file: assets get a free name, kits land in
+  `kits/<slug>/` on conflict. Removal goes to the Trash.
+- The built-in `fetch_url` reaches public hosts only (no loopback, private or link-local);
+  Poly Haven downloads only from Poly Haven's own hosts.
+- Model output never boots an emulator, runs an engine action, installs anything or adds an
+  MCP command: all of those are buttons.
+- Windows: the preview uses `http://vibeapp.localhost/<id>/…`; `preview::split_uri` and
+  `store.js previewBase()` are the only places that know this.
+- Stack `RULES_KEY` hard rules survive `sanitize` and are sent in every prompt.
+- Never link the "Cascadeur-3D" GitHub org (malware bait); cascadeur.com only.
+
 ---
 
 ## 5. Things you should NOT do
@@ -583,7 +610,7 @@ Violating these is a bug even if tests pass.
 | Add a theme | `theme.js::PRESETS` + `PRESET_LABELS` |
 | Change what a plug-in can contain | `plugins.rs::load` (and `installable` for what an install copies) |
 
-There are 139 Tauri commands. The frontend calls them via `call('name', {args})`
+There are 169 Tauri commands. The frontend calls them via `call('name', {args})`
 in `api.js`. **Top-level args are camelCased automatically; nested struct fields
 are not** (bug #8).
 
@@ -596,7 +623,7 @@ Streaming uses two events: `chat:delta` (kinds: `text`, `reasoning`, `image`,
 ## 7. Verification workflow
 
 ```bash
-python3 tools/check.py                    # frontend + 621 Rust tests + invariants
+python3 tools/check.py                    # frontend + 641 Rust tests + invariants
 npx tauri build --bundles app             # must compile clean
 ./tools/package_dmg.sh                    # signs + packages to ~/Downloads
 ```
@@ -678,11 +705,31 @@ JS uses the `el()` helper rather than template strings for DOM construction.
 
 Written so this file alone is enough to continue — no prior conversation needed.
 
-**Green as of last build (1.2.0):** 621 Rust tests, `tools/check.py` clean, 139
-Tauri commands, 38 panels, 18 JS modules, app installed to `/Applications`, DMG in
+**Green as of last build (1.3.0):** 641 Rust tests, `tools/check.py` clean, 169
+Tauri commands, 42 panels, 19 JS modules, app installed to `/Applications`, DMG in
 `~/Downloads`, source on GitHub at `CartyChris/VibeApp-AI` (MIT).
 
-### What the latest build added (1.2.0)
+### What the latest build added (1.3.0)
+
+- **Android**: Pixel 9 Pro XL and Galaxy S25 Ultra frames join the Pixel/Galaxy/tablet set,
+  with a Material status bar, Galaxy 3-button or Pixel gesture navigation, a working Back
+  (`__vibeCmd:'back'` → `backbutton`, `history.back()`, Escape) and `?os=android` UA spoofing.
+  **Android Emulator** button: boots an AVD and opens the project at `10.0.2.2`.
+- **Setup** on first run (20 items, Skip), **Asset Vault**, **Feature Kits**, **AI Providers**
+  (Venice, Featherless and other OpenAI-compatible endpoints; KoboldCpp, text-gen-webui and
+  Jan local), hosted no-install MCP presets and the built-in `vibeapp` tool server.
+- **WASM**: Rust → WASM and Zig → WASM project kinds (Game of Life starter, build + copy to
+  `app.wasm`), plus Emscripten, TinyGo, AssemblyScript, wasm-pack in the stack; a per-language
+  device-reach matrix and hard rules.
+- **Sky Islands 3D starter**: gradient sky, RoomEnvironment lighting, floating islands,
+  instanced trees/clouds, gems, double jump, a hero line-up of every `.glb` in
+  `assets/characters` (`characters.json`), the CC0 RobotExpressive as default hero.
+- **Free 3D assets** sheet in the Vault (15 sites, all links checked).
+- **Windows**: per-target keyring, `vibeapp.localhost` preview URLs and a
+  `.github/workflows/windows.yml` NSIS build. Not yet run on a Windows machine.
+- History was rewritten so no commit holds a key-shaped string; secret alert #1 closed.
+
+### Earlier (1.2.0)
 
 **3D and game engines.** New kinds: 3D game (three.js r186 vendored, a playable touch +
 keyboard platformer starter), Godot 4, Unity, Unreal Engine 5 and vork, each from a working
@@ -810,10 +857,14 @@ retrieval; custom models now resolve everywhere.
   no runtime errors, `enterCastle` defined, the hero-select screen rendered.
 
 ### NOT verified — do not call these working
-- **Godot, Unity and Unreal are not installed on this Mac**, so no engine action has run
-  against them. The starters are checked structurally (load_steps, ids, braces, placeholders,
-  naming) and the commands as argv, not by the engines. Expect a first-run fix or two —
-  especially Unity's VibeBuild and Unreal's compile.
+- **The Android Emulator bridge has not run against a real emulator**: no Android SDK is
+  installed. The loopback server and argument guards are tested; `adb`/`emulator` are not.
+- **The Windows build has only been compiled by CI** (if the workflow run is green); nobody
+  has launched it on Windows.
+- **Godot 4.7.2 is installed and the Godot check ran for real** (`check_with_the_real_godot`,
+  clean and with a planted error). Unity Hub and the Epic launcher are installed but no Unity
+  editor or Unreal Engine is, so Unity's VibeBuild and Unreal's compile have not run. Expect a
+  first-run fix or two there.
 0. **No real third-party MCP server has been started** (REA, ReVa, Playwright…), and no
    model has emitted a `<vibe:tool>` in a live turn. The protocol is tested against
    local fake servers; the preset commands are checked only for the package existing.

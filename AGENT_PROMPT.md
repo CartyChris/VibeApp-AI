@@ -18,7 +18,7 @@ BEFORE YOU CHANGE ANYTHING:
 
 2. Establish a baseline before you touch code:
       python3 tools/check.py
-   It must print ALL CHECKS PASSED (frontend imports, 621 Rust tests, and the
+   It must print ALL CHECKS PASSED (frontend imports, 641 Rust tests, and the
    invariant greps). If it does not, stop and tell me — do not start changing
    things on top of a broken baseline.
 

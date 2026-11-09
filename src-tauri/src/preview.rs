@@ -15,6 +15,17 @@ pub const RUNTIME_SHIM: &str = r#"<script>(function(){
   var send = function(type, payload){
     try { parent.postMessage({__vibe:1, type:type, payload:payload, path:location.pathname}, '*'); } catch(e){}
   };
+  // The simulated Android Back button: the standard `backbutton` event first
+  // (Cordova and Capacitor apps listen for it), then history, then Escape.
+  window.addEventListener('message', function(e){
+    if (!e.data || e.data.__vibeCmd !== 'back') return;
+    var ev = new Event('backbutton', {cancelable: true});
+    document.dispatchEvent(ev);
+    if (ev.defaultPrevented) return;
+    if (history.length > 1) { history.back(); return; }
+    var k = {key: 'Escape', code: 'Escape', bubbles: true, cancelable: true};
+    (document.activeElement || document.body || document).dispatchEvent(new KeyboardEvent('keydown', k));
+  });
   // This script sits above the page's own code, so every line in the document
   // is pushed down by its length. Report the line as it is in the file.
   var here = location.href.split('#')[0].split('?')[0];
@@ -252,12 +263,28 @@ document.addEventListener('DOMContentLoaded',fix);window.addEventListener('load'
 
 /// Resolve a `vibeapp://<project-id>/<path>?<query>` request to bytes on disk.
 /// Returns (mime, body). HTML is served with the runtime shim injected.
+/// The simulated operating system, passed as `?os=android`. Only known values
+/// are accepted; the page then sees an Android phone's user agent, so code that
+/// branches on the platform takes its Android path in the preview.
+fn os_script(query: &str) -> String {
+    let os = query.trim_start_matches('?').split('&').find_map(|p| p.strip_prefix("os="));
+    match os {
+        Some("android") => "<script>(function(){var ua='Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36';\
+try{Object.defineProperty(navigator,'userAgent',{get:function(){return ua}});\
+Object.defineProperty(navigator,'platform',{get:function(){return 'Linux armv8l'}});\
+Object.defineProperty(navigator,'vendor',{get:function(){return 'Google Inc.'}});\
+Object.defineProperty(navigator,'maxTouchPoints',{get:function(){return 5}});}catch(e){}\
+document.documentElement.classList.add('vibe-android');window.__vibeOS='android';})();</script>".to_string(),
+        _ => String::new(),
+    }
+}
+
 pub fn serve_with_query(project_id: &str, path: &str, query: &str) -> (String, Vec<u8>) {
     let (mime, body) = serve(project_id, path);
     if !mime.starts_with("text/html") || query.is_empty() {
         return (mime, body);
     }
-    let css = insets_css(query);
+    let css = format!("{}{}", os_script(query), insets_css(query));
     if css.is_empty() {
         return (mime, body);
     }
@@ -277,6 +304,18 @@ pub fn serve_with_query(project_id: &str, path: &str, query: &str) -> (String, V
         }
         Err(e) => (mime, e.into_bytes()),
     }
+}
+
+/// The project and file a preview request names. macOS and Linux send
+/// `vibeapp://<project>/<path>`; Windows (WebView2) sends
+/// `http://vibeapp.localhost/<project>/<path>`.
+pub fn split_uri(host: &str, path: &str) -> (String, String) {
+    if host.eq_ignore_ascii_case("vibeapp.localhost") || host.eq_ignore_ascii_case("vibeapp") {
+        let rest = path.trim_start_matches('/');
+        let (pid, file) = rest.split_once('/').unwrap_or((rest, ""));
+        return (pid.to_string(), format!("/{file}"));
+    }
+    (host.to_string(), path.to_string())
 }
 
 /// Resolve a `vibeapp://<project-id>/<path>` request to bytes on disk.
@@ -390,6 +429,22 @@ mod tests {
             assert!(RUNTIME_SHIM.contains(hook), "runtime shim is missing {hook}");
         }
         assert!(RUNTIME_SHIM.contains("__vibeShim"), "must be idempotent-guarded");
+    }
+
+    #[test]
+    fn preview_requests_resolve_on_every_platform() {
+        assert_eq!(split_uri("p1", "/assets/a.js"), ("p1".to_string(), "/assets/a.js".to_string()));
+        assert_eq!(split_uri("vibeapp.localhost", "/p1/assets/a.js"), ("p1".to_string(), "/assets/a.js".to_string()));
+        assert_eq!(split_uri("vibeapp.localhost", "/p1"), ("p1".to_string(), "/".to_string()));
+    }
+
+    #[test]
+    fn the_android_hint_is_strict_and_the_back_button_reaches_the_page() {
+        assert!(os_script("?sat=48&os=android").contains("Android 15"));
+        assert_eq!(os_script("?os=android<script>"), "");
+        assert_eq!(os_script("?os=windows"), "");
+        assert_eq!(os_script("?sat=1"), "");
+        assert!(RUNTIME_SHIM.contains("__vibeCmd") && RUNTIME_SHIM.contains("'backbutton'") && RUNTIME_SHIM.contains("history.back()"));
     }
 
     #[test]

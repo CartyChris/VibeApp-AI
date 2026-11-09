@@ -1,6 +1,6 @@
 [package]
 name = "vibeapp-ai"
-version = "1.2.0"
+version = "1.3.0"
 description = "Build iOS, web and desktop apps by describing them."
 authors = ["VibeApp AI"]
 edition = "2021"
@@ -38,11 +38,21 @@ base64 = "0.22"
 walkdir = "2"
 zip = { version = "2", default-features = false, features = ["deflate"] }
 rusqlite = { version = "0.32", features = ["bundled"] }
-keyring = { version = "3", features = ["apple-native"] }
 sha2 = "0.10"
 regex = "1"
 dirs = "5"
 urlencoding = "2"
+
+# The credential store is per platform: the macOS Keychain, the Windows
+# Credential Manager, the Linux Secret Service.
+[target.'cfg(target_os = "macos")'.dependencies]
+keyring = { version = "3", features = ["apple-native"] }
+
+[target.'cfg(windows)'.dependencies]
+keyring = { version = "3", features = ["windows-native"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+keyring = { version = "3", features = ["linux-native"] }
 
 [features]
 default = ["custom-protocol"]

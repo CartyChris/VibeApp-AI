@@ -18,6 +18,7 @@ import './panels7.js';
 import './panels8.js';
 import './panels9.js';
 import { importEngineProject, runPluginCommand } from './panels10.js';
+import './panels11.js';
 import { openPalette } from './palette.js';
 import { wireAdvisorStream } from './panels3.js';
 import { visiblePanels } from './appearance.js';
@@ -1134,6 +1135,8 @@ const PROJECT_KINDS = [
   { id: 'unity',  icon: 'box',  label: 'Unity game',  hint: 'A Unity C# project. Build WebGL, iOS or Android with your Unity.' },
   { id: 'unreal', icon: 'bolt', label: 'Unreal game', hint: 'An Unreal Engine 5 C++ project. Compile and open with your Unreal.' },
   { id: 'vork',   icon: 'lens', label: 'vork scene',  hint: 'Ray-traced stills and shots, rendered on your GPU by vork.' },
+  { id: 'rustwasm', icon: 'chip', label: 'Rust + WebAssembly', hint: 'A web app whose core is Rust compiled to .wasm. Build runs cargo; the preview shows it.' },
+  { id: 'zigwasm',  icon: 'bolt', label: 'Zig + WebAssembly',  hint: 'A web app whose core is Zig compiled to .wasm, no other tools needed.' },
 ];
 
 /**
@@ -1500,6 +1503,11 @@ function palette() {
       cmd('cube', 'Import a game engine project', 'Godot, Unity, Unreal or vork folder', importEngineProject),
       cmd('cube', 'Engine', 'Run, check and build the 3D project', () => emit('show-panel', 'engine')),
       cmd('puzzle', 'Plug-ins', 'Install or create one', () => emit('show-panel', 'plugins')),
+      cmd('gear', 'Setup', 'Engines, languages, local models, tools', () => emit('show-panel', 'setup')),
+      cmd('box', 'Asset Vault', 'Saved models, textures and sounds', () => emit('show-panel', 'vault')),
+      cmd('layers', 'Feature Kits', 'Reuse part of one app in another', () => emit('show-panel', 'kits')),
+      cmd('net', 'AI Providers', 'Any OpenAI-compatible API, incl. uncensored models', () => emit('show-panel', 'providers')),
+      cmd('phone', 'Android Emulator', 'Open this app in a real Android emulator', () => emit('android-emulator')),
       ...(S.pluginCommands || []).map(c => ({ icon: 'puzzle', label: `/${c.name}`, hint: c.description || c.plugin,
         group: 'Plug-in commands', run: () => runPluginCommand(c) })),
       cmd('folder', 'Switch project', '⌘P', openProjectSheet),
